@@ -121,7 +121,7 @@ int main (int argc, char *argv[])
     /* Call poll() and wait 3 minutes for it to complete.      */
     /***********************************************************/
     printf("Waiting on poll()...\n");
-    rc = poll(fds, nfds, timeout);
+    rc = poll(fds, nfds, -1);
 
     /***********************************************************/
     /* Check to see if the poll call failed.                   */
@@ -269,14 +269,15 @@ int main (int argc, char *argv[])
           /*****************************************************/
           /* Echo the data back to the client                  */
           /*****************************************************/
-          rc = send(fds[i].fd, buffer, len, 0);
-          if (rc < 0)
-          {
-            perror("  send() failed");
-            close_conn = TRUE;
-            break;
-          }
-
+		  for (int z = 1; z < nfds; z++)
+		  {
+			rc = send(fds[z].fd, buffer, len, 0);
+			if (rc < 0)
+			{
+				perror("  send() failed");
+				close_conn = TRUE;
+			}
+		  }
         } while(TRUE);
 
         /*******************************************************/
