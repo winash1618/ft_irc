@@ -107,7 +107,10 @@ int main (int argc, char *argv[])
   /* timeout value is based on milliseconds.                   */
   /*************************************************************/
   timeout = (3 * 60 * 1000);
-
+	char hostbuffer[256] = {0};
+	gethostname(hostbuffer, sizeof(hostbuffer));
+	printf("Hostname: ---%s---\n", hostbuffer);
+	// sethostname("myhost", strlen("myhost"));
   /*************************************************************/
   /* Loop waiting for incoming connects or for incoming data   */
   /* on any of the connected sockets.                          */

@@ -167,8 +167,7 @@ do
 	}
 
 	printf("%d bytes of data were received\n", rc);
-	if (rc == 0 ||
-		rc < sizeof(buffer))
+	if (rc == 0 || rc < sizeof(buffer))
 	{
 		printf("The client closed the connection before all of the\n");
 		printf("data was sent\n");
