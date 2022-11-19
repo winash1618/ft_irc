@@ -13,3 +13,17 @@ This project is about creating your own IRC server. You will use an actual IRC c
 - https://www.youtube.com/watch?v=67f9iptWqt0
 - https://www.irchelp.org/clients/mac/
 - https://www.makeuseof.com/tag/how-to-create-your-own-irc-chat-channel/
+
+
+## Things to do in irc:
+- We need to authenticate the client user.
+- Set a nick name:
+- Set a user name:
+- Send and recieve private messages using your reference client.
+## Channel Things:
+- Create a channel:
+- Allow users to join the channel that is created.
+- if a message send by the user in a channel then we have to forward it to every other client.
+## operator (Surprise!)
+- We must have operators:
+- They have specific commands to use those are not mentioned.
