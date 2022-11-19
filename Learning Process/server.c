@@ -1,4 +1,6 @@
-// https://www.ibm.com/docs/en/i/7.2?topic=designs-using-poll-instead-select
+// https://www.ibm.coa.	m/docs/en/i/7.2?topic=designs-using-poll-instead-select
+// https://stackoverflow.com/questions/34069937/c-socket-programming-client-server-connection-on-host-name
+// https://www.tutorialspoint.com/c-program-to-display-hostname-and-ip-address
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -265,6 +267,7 @@ int main (int argc, char *argv[])
           /*****************************************************/
           len = rc;
           printf("  %d bytes received\n", len);
+		  printf("%s", buffer);
 
           /*****************************************************/
           /* Echo the data back to the client                  */
