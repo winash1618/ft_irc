@@ -95,16 +95,17 @@ char **argv;
         exit(6);
     }
 
-    /*
-     * Close the socket.
-     */
-    close(s);
 
     printf("Client Ended Successfully\n");
 	while (1)
 	{
-		
+		scanf("%s", buf);
+		send(s,	buf , sizeof(buf), 0);
 	}
+    /*
+     * Close the socket.
+     */
+    close(s);
     exit(0);
 
 }
