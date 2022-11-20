@@ -7,14 +7,32 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <netinet/in.h>
+#include <sstream>
+#include <iostream>
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
 
 #define SERVER_PORT  6667
 
+
 #define TRUE             1
 #define FALSE            0
+
+class User {
+public:
+	int userFd;
+	std::string name;
+};
+
+#define RPL_MOTDSTART 375
+
+int		sendReply(const std::string &from, const User &user, int rpl)
+{
+	std::string	msg = ":test 375 kabusitt :test of the day\n";
+	send(user.userFd, msg.c_str(), msg.size(), SO_NOSIGPIPE);
+	return 0;
+}
 
 int main (int argc, char *argv[])
 {
@@ -264,14 +282,18 @@ int main (int argc, char *argv[])
           /* Data was received                                 */
           /*****************************************************/
           len = rc;
-          printf("  %d bytes received\n", len);
+          printf("%s\n", buffer);
 
           /*****************************************************/
           /* Echo the data back to the client                  */
           /*****************************************************/
 		  for (int z = 1; z < nfds; z++)
 		  {
-			rc = send(fds[z].fd, buffer, len, 0);
+			struct User user;
+			user.userFd = fds[z].fd;
+			user.name = "kabusitt";
+			sendReply("test", user, RPL_MOTDSTART);
+			rc = send(fds[z].fd, ":Test", 5, SO_NOSIGPIPE);
 			if (rc < 0)
 			{
 				perror("  send() failed");
