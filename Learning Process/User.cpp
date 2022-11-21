@@ -19,3 +19,13 @@ void User::setSocket(int socket)
 {
 	this->socket = socket;
 }
+
+const std::string	User::getUserName() const
+{
+	return (this->username);
+}
+
+void	User::setUserName(std::string username)
+{
+	this->username = username;
+}

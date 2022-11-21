@@ -3,14 +3,19 @@
 
 #include <string>
 #include <errno.h>
+#include "Numerics.hpp"
+#include "User.hpp"
+#include <sstream>
 #include <sys/socket.h>
 
 class Message {
 private:
 	std::string msg;
 public:
-	const std::string	parseMessage() const;
-	const	std::string msgRecv(int, bool&);
+	int					parseMessage(std::string msg);
+	const std::string	msgRecv(int sock, bool& close_conn);
+	void				sendReply(int numeric, std::string& from, User& user);
+	const std::string	getNthWord(std::string, std::size_t);
 	class MessageError : public std::exception
 	{
 	private:

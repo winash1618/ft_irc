@@ -3,6 +3,9 @@
 
 Server::Server(std::string port, std::string password):	password(password), nfds(1), user_sd(-1), server_running(true) {
 	std::istringstream(port) >> this->port;
+	char hostbuffer[256] = {0};
+	gethostname(hostbuffer, sizeof(hostbuffer));
+	this->hostname = hostbuffer;
 }
 
 Server::~Server()
@@ -39,9 +42,7 @@ void	Server::socketListen()
 
 void	Server::printHostname()
 {
-	char hostbuffer[256] = {0};
-	gethostname(hostbuffer, sizeof(hostbuffer));
-	printf("Hostname: ---%s---\n", hostbuffer);
+	std::cout << "Hostname: " + this->hostname << std::endl;
 }
 
 int	Server::getNumberOfFds() const
@@ -141,32 +142,45 @@ void	Server::loopFds()
 			this->fds[this->nfds].fd = this->user_sd;
 			this->fds[this->nfds].events = POLLIN;
 			this->nfds++;
+			User user;
+			this->users.push_back(&user);
 
         } while (this->user_sd != -1);
       }
       else
       {
         printf("  Descriptor %d is readable\n", fds[i].fd);
-        bool	close_conn = false;
+        this->close_conn = false;
         do
         {
 			try {
 				std::string msg = message.msgRecv(fds[i].fd, close_conn);
 				if (msg == "break")
 					break ;
-				std::string command = msg.substr(0, msg.find(" "));
-				// switch (command) {
-				// 	case "JOIN": {
-				// 		message.sendReply()
-				// 	}
-				// 	case "NICK": {
-				// 		message.sendReply()
-				// 	}
-				// 	case "PASS": {
-				// 		message.sendReply()
-				// 	}
-				// }
-				std::cout << msg << std::endl;
+				int	cmd = message.parseMessage(msg);
+				switch (cmd) {
+					case JOIN: {
+						break ;
+					}
+					case NICK: {
+						users[i - 1]->setNickName(message.getNthWord(msg, 2));
+						std::cout << users[i - 1]->getNickName() << std::endl;
+						break ;
+					}
+					case PASS: {
+						break ;
+					}
+					case USER: {
+						std::cout << msg << std::endl;
+						users[i - 1]->setUserName(message.getNthWord(msg, 2));
+						message.sendReply(RPL_LOGGEDIN, this->hostname, *(users[i - 1]));
+						break ;
+					}
+					default:
+					{
+						break ;
+					}
+				}
 			}
 			catch (std::exception &exp)
 			{
@@ -178,6 +192,8 @@ void	Server::loopFds()
         if (this->close_conn)
         {
           close(fds[i].fd);
+		  if (i > 0)
+		  	users.erase(users.begin() + (i - 1));
           fds[i].fd = -1;
           reorder_fds = true;
         }
