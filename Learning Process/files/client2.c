@@ -6,7 +6,7 @@
 /* Header files needed for this sample program                            */
 /**************************************************************************/
 #include <stdio.h>
-#include <string.h>
+#include <string>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>

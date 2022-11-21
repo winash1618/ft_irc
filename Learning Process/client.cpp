@@ -1,6 +1,6 @@
 #include <arpa/inet.h>
 #include <stdio.h>
-#include <string.h>
+#include <string>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netdb.h>
@@ -48,10 +48,6 @@ int main(int argc, char const* argv[])
 			}
 			while (1)
 			{
-				std::string getInput;
-				char buf[100];
-				std::getline(std::cin, getInput);
-				send(sock, getInput.c_str(), getInput.length(), 0);
 				recv(sock, buf, 100, 0);
 				std::cout << buf << std::endl;
 			}
