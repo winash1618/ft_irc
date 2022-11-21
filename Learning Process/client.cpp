@@ -1,6 +1,6 @@
 #include <arpa/inet.h>
 #include <stdio.h>
-#include <string.h>
+#include <string>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netdb.h>
