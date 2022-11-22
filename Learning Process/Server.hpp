@@ -18,6 +18,7 @@
 #include <vector>
 #include "Message.hpp"
 #include "User.hpp"
+#include "Numerics.hpp"
 
 #define SERVER_PORT 6667
 
@@ -27,7 +28,8 @@ class Server {
 private:
 	int					sock;
 	int					port;
-	std::string			password;		
+	std::string			password;	
+	std::string			hostname;
   	struct sockaddr_in6	addr;
 	std::vector<User*>	users;
 	Message				message;
