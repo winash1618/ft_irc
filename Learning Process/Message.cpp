@@ -43,6 +43,8 @@ int	Message::parseMessage(std::string msg)
 		return (PASS);
 	else if (command == "USER")
 		return (USER);
+	else if (command == "AUTHENTICATE")
+		return (USER);
 	return (0);
 }
 
