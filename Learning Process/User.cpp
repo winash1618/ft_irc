@@ -5,7 +5,7 @@ const std::string User::getNickName() const
 	return this->nickname;
 }
 
-void User::setNickName(std::string nickname)
+void User::setNickName(const std::string nickname)
 {
 	this->nickname = nickname;
 }

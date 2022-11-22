@@ -40,7 +40,7 @@ private:
 	bool				server_running;
 	bool				reorder_fds;
 public:
-	Server(std::string, std::string);
+	Server(std::string port, std::string password);
 	~Server();
 	void		socketCreate();
 	int			socketAccept();
