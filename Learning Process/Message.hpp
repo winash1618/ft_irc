@@ -15,7 +15,7 @@ public:
 	int					parseMessage(std::string msg);
 	const std::string	msgRecv(int sock, bool& close_conn);
 	void				sendReply(int numeric, std::string& from, User& user);
-	const std::string	getNthWord(std::string, std::size_t);
+	const std::string	getNthWord(std::string s, std::size_t n);
 	class MessageError : public std::exception
 	{
 	private:

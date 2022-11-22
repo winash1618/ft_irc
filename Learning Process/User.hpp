@@ -18,9 +18,9 @@ public:
 	const std::string	getNickName() const;
 	int					getSocket() const;
 	const std::string	getUserName() const;
-	void				setUserName(std::string);
+	void				setUserName(const std::string username);
 	void				setSocket(const int);
-	void				setNickName(const std::string);
+	void				setNickName(const std::string nickname);
 	bool				isOperator(Channel channel) const;
 };
 
