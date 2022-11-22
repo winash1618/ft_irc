@@ -12,7 +12,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/poll.h>
-#include <string.h>
+#include <string>
 #include <unistd.h>
 
 

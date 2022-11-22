@@ -3,7 +3,7 @@
 // Example code: A simple server side code, which echos back the received message.
 // Handle multiple socket connections with select and fd_set on Linux 
 #include <stdio.h> 
-#include <string.h>   //strlen 
+#include <string>   //strlen 
 #include <stdlib.h> 
 #include <errno.h> 
 #include <unistd.h>   //close 
