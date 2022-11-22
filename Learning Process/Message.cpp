@@ -27,7 +27,7 @@ void	Message::sendReply(int numeric, std::string& from, User &user)
 	std::string msg = ":" + from + " ";
 	std::stringstream ss;
 	ss << numeric;
-	msg += ss.str() + " " + user.getNickName() + "!" + user.getUserName() + "@" + "localhost kabusitt :You are now logged in as kabusitt";
+	msg += ss.str() + " " + user.getNickName() + "!" + user.getUserName() + "@" + "localhost kabusitt :You are now logged in as kabusitt\n";
 	send(user.getSocket(), msg.c_str(), msg.length(), 0);
 	(void)numeric;
 }
@@ -51,4 +51,9 @@ const std::string Message::getNthWord(std::string s, std::size_t n)
     std::istringstream iss (s);
     while(n-- > 0 && (iss >> s));
     return s;
+}
+
+void	Message::sendMessage(User &user, const std::string &msg)
+{
+	send(user.getSocket(), msg.c_str(), msg.length(), 0);
 }

@@ -157,6 +157,7 @@ void	Server::loopFds()
 				std::string msg = message.msgRecv(fds[i].fd, close_conn);
 				if (msg == "break")
 					break ;
+				std::cout << msg << std::endl;
 				int	cmd = message.parseMessage(msg);
 				switch (cmd) {
 					case JOIN: {
@@ -164,15 +165,14 @@ void	Server::loopFds()
 					}
 					case NICK: {
 						users[i - 1]->setNickName(message.getNthWord(msg, 2));
-						std::cout << users[i - 1]->getNickName() << std::endl;
 						break ;
 					}
 					case PASS: {
 						break ;
 					}
 					case USER: {
-						std::cout << msg << std::endl;
 						users[i - 1]->setUserName(message.getNthWord(msg, 2));
+						message.sendMessage(*(users[i - 1]), ":" + this->hostname + " CAP kabusitt ACK :sasl\n");
 						message.sendReply(RPL_LOGGEDIN, this->hostname, *(users[i - 1]));
 						break ;
 					}
