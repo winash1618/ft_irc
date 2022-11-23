@@ -57,7 +57,6 @@ public:
 	void		pollFdInit();
 	void		loopFds();
 	void		reorderFds();
-	bool		findChannel(Channel *channel, );
 	bool		getServerRunning() const;
 	int			getSocket() const;
 	int			getNumberOfFds() const;

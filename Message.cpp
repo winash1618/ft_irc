@@ -73,7 +73,7 @@ int	Message::parseMessage(std::string msg)
 		else
 			return (AUTHENTICATE);
 	}
-	else if (command == "MSG")
+	else if (command == "PRIVMSG")
 	{
 		return (MSG);
 	}

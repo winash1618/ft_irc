@@ -165,14 +165,15 @@ void	Server::loopFds()
 				int	cmd = this->message.parseMessage(msg);
 				switch (cmd) {
 					case MSG: {
-						std::string	name = message.getNthWord(msg, 2)[0] == '#';
+						std::string	name = this->message.getNthWord(msg, 2);
 						if (name[0] == '#')
 						{
 							for (std::vector<Channel*>::iterator it = this->channels.begin(); it != this->channels.end(); it++)
 							{
 								if ((*it)->getChannelName() == name)
 								{
-									(*it)->
+									std::string tmp = this->message.getNthWord(msg, 2);
+									(*it)->sendMessage(users[i - 1]->getNickName(), msg);
 								}
 							}
 						}
@@ -183,6 +184,22 @@ void	Server::loopFds()
 						break;
 					}
 					case JOIN: {
+						std::string name = message.getNthWord(msg, 2);
+						bool		found = false;
+						for (std::vector<Channel*>::iterator it = this->channels.begin(); it != this->channels.end(); it++)
+						{
+							if ((*it)->getChannelName() == name)
+							{
+								(*it)->addUser(users[i - 1]);
+								found = true;
+							}
+						}
+						if (!found)
+						{
+							Channel *channel = new Channel(name);
+							channel->addUser(users[i - 1]);
+							this->channels.push_back(channel);
+						}
 						break ;
 					}
 					case NICK: {

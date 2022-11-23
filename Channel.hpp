@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <sys/socket.h>
 #include "User.hpp"
 #include <vector>
 
@@ -13,8 +14,11 @@ private:
 	std::string 		name;
 	std::vector<User*>	users;
 public:
+	Channel(const std::string &name);
+	~Channel();
 	const std::string	getChannelName() const;
-	const std::string 	sendMessage() const;
+	void				addUser(User *user);
+	void				sendMessage(const std::string &from, const std::string &msg);
 };
 
 #endif
