@@ -29,3 +29,23 @@ void	User::setUserName(std::string username)
 {
 	this->username = username;
 }
+
+const std::string	User::getPassword() const
+{
+	return (this->password);
+}
+
+void	User::setPassword(std::string password)
+{
+	this->password = password;
+}
+
+const std::string	User::getHostName() const
+{
+	return (this->hostname);
+}
+
+void	User::setHostName(std::string hostname)
+{
+	this->hostname = hostname;
+}

@@ -15,6 +15,8 @@ This project is about creating your own IRC server. You will use an actual IRC c
 - https://www.makeuseof.com/tag/how-to-create-your-own-irc-chat-channel/
 - https://stackoverflow.com/questions/68808597/how-can-my-irc-client-print-data-that-was-received-before-its-in-the-loop-that
 - https://stackoverflow.com/questions/11079800/irc-server-configuration-possibilities
+- https://ircv3.net/specs/extensions/sasl-3.1.html
+- https://modern.ircdocs.horse/
 
 # RFC Documents
 - https://www.rfc-editor.org/rfc/rfc1459 - Internet Relay Chat Protocol

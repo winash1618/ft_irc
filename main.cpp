@@ -5,8 +5,6 @@
 #include "Server.hpp"
 #include "User.hpp"
 
-#define SERVER_PORT  6667
-
 int main (int argc, char *argv[])
 {
 	if (argc == 3)

@@ -22,19 +22,37 @@ const std::string	Message::msgRecv(int sock, bool &close_conn)
 	return buffer;
 }
 
-void	Message::sendReply(int numeric, std::string& from, User &user)
+void	Message::sendReply(int numeric, const std::string& from, User &user, const std::string &cmd)
 {
 	std::string msg = ":" + from + " ";
 	std::stringstream ss;
 	ss << numeric;
-	msg += ss.str() + " " + user.getNickName() + "!" + user.getUserName() + "@" + "localhost kabusitt :You are now logged in as kabusitt\n";
+	msg += ss.str() + " ";
+	switch (numeric)
+	{
+		case RPL_LOGGEDIN:
+		{
+			msg += user.getNickName() + " " + user.getNickName() + "!" + user.getUserName() + "@" + user.getHostName() + " kabusitt :You are now logged in as " + user.getUserName() + "\n";
+			break ;
+		}
+		case ERR_NEEDMOREPARAMS:
+		{
+			msg += cmd + " :Not enough parameters";
+			break ;
+		}
+		default:
+		{
+			break ;
+		}
+	}
+	std::cout << msg << std::endl;
 	send(user.getSocket(), msg.c_str(), msg.length(), 0);
-	(void)numeric;
 }
 
 int	Message::parseMessage(std::string msg)
 {
-	std::string command = msg.substr(0, msg.find(" "));
+	std::string command = getNthWord(msg, 1);
+
 	if (command == "JOIN")
 		return (JOIN);
 	else if (command == "NICK")
@@ -44,7 +62,12 @@ int	Message::parseMessage(std::string msg)
 	else if (command == "USER")
 		return (USER);
 	else if (command == "AUTHENTICATE")
-		return (USER);
+	{
+		if (getNthWord(msg, 2) == "PLAIN")
+			return (PLAIN);
+		else
+			return (AUTHENTICATE);
+	}
 	return (0);
 }
 
