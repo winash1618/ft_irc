@@ -1,4 +1,4 @@
-NAME = ft_irc
+NAME = ircserv
 CPPFLAGS = -Wall -Wextra -Werror
 CC = c++
 SRC = main.cpp Message.cpp Server.cpp Channel.cpp User.cpp

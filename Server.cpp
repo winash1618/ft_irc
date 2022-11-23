@@ -93,7 +93,9 @@ void	Server::makeNonBlocking()
 
 int	Server::socketAccept()
 {
-	this->user_sd = accept(this->sock, NULL, NULL);
+	unsigned int size = sizeof(this->client);
+	memset(&this->client, 0, sizeof(this->client));
+	this->user_sd = accept(this->sock, (struct sockaddr *)&(this->client), &size);
 	if (this->user_sd < 0)
 	{
 		if (errno != EWOULDBLOCK)
@@ -141,9 +143,10 @@ void	Server::loopFds()
 			printf("  New incoming connection - %d\n", this->user_sd);
 			this->fds[this->nfds].fd = this->user_sd;
 			this->fds[this->nfds].events = POLLIN;
-			User user;
-			user.setSocket(this->fds[this->nfds].fd);
-			this->users.push_back(&user);
+			User *user = new User();
+			user->setSocket(this->fds[this->nfds].fd);
+			user->setHostName(inet_ntoa(this->client.sin_addr));
+			this->users.push_back(user);
 			this->nfds++;
 
         } while (this->user_sd != -1);
@@ -155,31 +158,56 @@ void	Server::loopFds()
         do
         {
 			try {
-				std::string msg = message.msgRecv(fds[i].fd, close_conn);
+				std::string msg = this->message.msgRecv(fds[i].fd, close_conn);
 				if (msg == "break")
 					break ;
 				std::cout << msg << std::endl;
-				int	cmd = message.parseMessage(msg);
+				int	cmd = this->message.parseMessage(msg);
 				switch (cmd) {
 					case JOIN: {
 						break ;
 					}
 					case NICK: {
-						users[i - 1]->setNickName(message.getNthWord(msg, 2));
+						users[i - 1]->setNickName(this->message.getNthWord(msg, 2));
 						break ;
 					}
 					case PASS: {
 						break ;
 					}
+					case PLAIN: {
+
+						if (users[i - 1]->getPassword().empty())
+							message.sendMessage(*(users[i - 1]), "AUTHENTICATE +\n");
+						break;
+					}
+					case AUTHENTICATE:
+					{
+						std::stringstream stream(msg);
+						size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
+						if (size == 1)
+						{
+							message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "AUTHENTICATE");
+						}
+						else if (users[i - 1]->getPassword().empty())
+						{
+							users[i - 1]->setPassword(message.getNthWord(msg, 2));
+							message.sendReply(RPL_LOGGEDIN, this->hostname, *(users[i - 1]));
+						}
+						break ;
+					}
 					case USER: {
-						users[i - 1]->setUserName(message.getNthWord(msg, 2));
-						//message.sendMessage(*(users[i - 1]), ":127.0.0.1 CAP * LS :account-notify account-tag away-notify batch cap-notify chghost draft/relaymsg=/ echo-message extended-join inspircd.org/poison inspircd.org/standard-replies invite-notify labeled-response message-tags multi-prefix sasl=EXTERNAL,PLAIN server-time setname userhost-in-names\n");
-						message.sendMessage(*(users[i - 1]), ":127.0.0.1 CAP kabusitt ACK :sasl\n");
-						//message.sendReply(RPL_LOGGEDIN, this->hostname, *(users[i - 1]));
+						users[i - 1]->setUserName(this->message.getNthWord(msg, 2));
+						std::string hostname = this->message.getNthWord(msg, 3);
+						if (hostname == "0")
+							message.sendMessage(*(users[i - 1]), ":" + this->hostname +" NOTICE * :*** Could not resolve your hostname: Domain not found; using your IP address ("+ users[i - 1]->getHostName() +") instead.\n");
+						else
+							users[i - 1]->setHostName(hostname);
+						message.sendMessage(*(users[i - 1]), ":" + this->hostname +" CAP kabusitt ACK :sasl\n");
 						break ;
 					}
 					default:
 					{
+						message.sendReply(ERR_UNKNOWNCOMMAND, this->hostname, *(users[i - 1]), message.getNthWord(msg, 1));
 						break ;
 					}
 				}
@@ -247,10 +275,10 @@ void	Server::socketBind()
 	memset(&this->addr, 0, sizeof(this->addr));
 	this->addr.sin6_family      = AF_INET6;
 	memcpy(&this->addr.sin6_addr, &in6addr_any, sizeof(in6addr_any));
-	this->addr.sin6_port        = htons(SERVER_PORT);
+	this->addr.sin6_port        = htons(this->port);
 	int rc = bind(this->sock,
 				(struct sockaddr *)&this->addr, sizeof(this->addr));
-				 if (rc < 0)
+	if (rc < 0)
 	{
 		std::string errMsg = strerror(errno);
 		errMsg += " bind() failed";

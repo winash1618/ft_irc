@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <sys/ioctl.h>
 #include <sys/poll.h>
+#include <arpa/inet.h>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <netinet/in.h>
@@ -31,6 +32,7 @@ private:
 	std::string			password;	
 	std::string			hostname;
   	struct sockaddr_in6	addr;
+	struct sockaddr_in	client;
 	std::vector<User*>	users;
 	Message				message;
   	struct pollfd		fds[200];
