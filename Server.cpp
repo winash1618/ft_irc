@@ -164,6 +164,24 @@ void	Server::loopFds()
 				std::cout << msg << std::endl;
 				int	cmd = this->message.parseMessage(msg);
 				switch (cmd) {
+					case MSG: {
+						std::string	name = message.getNthWord(msg, 2)[0] == '#';
+						if (name[0] == '#')
+						{
+							for (std::vector<Channel*>::iterator it = this->channels.begin(); it != this->channels.end(); it++)
+							{
+								if ((*it)->getChannelName() == name)
+								{
+									(*it)->
+								}
+							}
+						}
+						// else
+							// send message to person
+							// user who sent message users[i - 1]->getNickName();
+							// 2nd parameter will be the user to send to so you have to search in member variable users to find it.
+						break;
+					}
 					case JOIN: {
 						break ;
 					}
@@ -199,9 +217,11 @@ void	Server::loopFds()
 						users[i - 1]->setUserName(this->message.getNthWord(msg, 2));
 						std::string hostname = this->message.getNthWord(msg, 3);
 						if (hostname == "0")
-							message.sendMessage(*(users[i - 1]), ":" + this->hostname +" NOTICE * :*** Could not resolve your hostname: Domain not found; using your IP address ("+ users[i - 1]->getHostName() +") instead.\n");
+							message.sendMessage(*(users[i - 1]), ":" + this->hostname + " NOTICE * :*** Could not resolve your hostname: Domain not found; using your IP address ("+ users[i - 1]->getHostName() +") instead.\n");
 						else
 							users[i - 1]->setHostName(hostname);
+						users[i - 1]->setIdent("~" + users[i - 1]->getNickName());
+						message.sendMessage(*(users[i - 1]), ":" + this->hostname + " NOTICE kazem :*** Could not find your ident, using " + users[i - 1]->getIdent() + " instead.\n");
 						message.sendMessage(*(users[i - 1]), ":" + this->hostname +" CAP kabusitt ACK :sasl\n");
 						break ;
 					}

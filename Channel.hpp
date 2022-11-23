@@ -10,10 +10,11 @@ class User;
 
 class Channel {
 private:
-	std::string name;
+	std::string 		name;
 	std::vector<User*>	users;
 public:
 	const std::string	getChannelName() const;
+	const std::string 	sendMessage() const;
 };
 
 #endif

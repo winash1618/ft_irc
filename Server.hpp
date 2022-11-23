@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include <exception>
 #include <vector>
+#include <algorithm>
 #include "Message.hpp"
 #include "User.hpp"
 #include "Numerics.hpp"
@@ -27,20 +28,21 @@ class User;
 
 class Server {
 private:
-	int					sock;
-	int					port;
-	std::string			password;	
-	std::string			hostname;
-  	struct sockaddr_in6	addr;
-	struct sockaddr_in	client;
-	std::vector<User*>	users;
-	Message				message;
-  	struct pollfd		fds[200];
-	int					nfds;
-	int					user_sd;
-	bool				close_conn;
-	bool				server_running;
-	bool				reorder_fds;
+	int						sock;
+	int						port;
+	std::string				password;	
+	std::string				hostname;
+  	struct sockaddr_in6		addr;
+	struct sockaddr_in		client;
+	std::vector<User*>		users;
+	std::vector<Channel*>	channels;
+	Message					message;
+  	struct pollfd			fds[200];
+	int						nfds;
+	int						user_sd;
+	bool					close_conn;
+	bool					server_running;
+	bool					reorder_fds;
 public:
 	Server(std::string port, std::string password);
 	~Server();
@@ -55,6 +57,7 @@ public:
 	void		pollFdInit();
 	void		loopFds();
 	void		reorderFds();
+	bool		findChannel(Channel *channel, );
 	bool		getServerRunning() const;
 	int			getSocket() const;
 	int			getNumberOfFds() const;

@@ -32,12 +32,17 @@ void	Message::sendReply(int numeric, const std::string& from, User &user, const 
 	{
 		case RPL_LOGGEDIN:
 		{
-			msg += user.getNickName() + " " + user.getNickName() + "!" + user.getUserName() + "@" + user.getHostName() + " kabusitt :You are now logged in as " + user.getUserName() + "\n";
+			msg += user.getNickName() + " " + user.getNickName() + "!" + user.getIdent() + "@" + user.getHostName() + " " + user.getUserName() + " :You are now logged in as " + user.getUserName() + "\n";
 			break ;
 		}
 		case ERR_NEEDMOREPARAMS:
 		{
 			msg += cmd + " :Not enough parameters";
+			break ;
+		}
+		case ERR_UNKNOWNCOMMAND:
+		{
+			msg += "kabusitt :Unknown command";
 			break ;
 		}
 		default:
@@ -67,6 +72,10 @@ int	Message::parseMessage(std::string msg)
 			return (PLAIN);
 		else
 			return (AUTHENTICATE);
+	}
+	else if (command == "MSG")
+	{
+		return (MSG);
 	}
 	return (0);
 }
