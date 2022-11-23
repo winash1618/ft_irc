@@ -1,12 +1,18 @@
 NAME = ft_irc
-CFLAGS = -Wall -Wextra -Werror
+CPPFLAGS = -Wall -Wextra -Werror
 CC = c++
 SRC = main.cpp Message.cpp Server.cpp Channel.cpp User.cpp
-OBJ = ${SRC:.c=.o}
+OBJ = $(SRC:.cpp=.o)
 
 all: ${NAME}
 
 ${NAME}: ${OBJ}
-	${CC} ${CFLAGS} ${OBJ} -o $@
+	${CC} ${CPPFLAGS} ${OBJ} -o $@
 
-%.o: %.c
+clean:
+	rm -rf ${OBJ}
+
+fclean:	clean
+	rm -rf ${NAME}
+
+re: fclean all

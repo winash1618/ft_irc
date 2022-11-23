@@ -1,7 +1,7 @@
 #ifndef NUMERICS_HPP
 #define NUMERICS_HPP
 
-enum Cmd {JOIN=1, NICK, PASS, USER};
+enum Cmd {JOIN=1, NICK, PASS, USER, AUTHENTICATE};
 
 #define RPL_LOGGEDIN 900
 

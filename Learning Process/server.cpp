@@ -141,9 +141,10 @@ void	Server::loopFds()
 			printf("  New incoming connection - %d\n", this->user_sd);
 			this->fds[this->nfds].fd = this->user_sd;
 			this->fds[this->nfds].events = POLLIN;
-			this->nfds++;
 			User user;
+			user.setSocket(this->fds[this->nfds].fd);
 			this->users.push_back(&user);
+			this->nfds++;
 
         } while (this->user_sd != -1);
       }
@@ -157,6 +158,7 @@ void	Server::loopFds()
 				std::string msg = message.msgRecv(fds[i].fd, close_conn);
 				if (msg == "break")
 					break ;
+				std::cout << msg << std::endl;
 				int	cmd = message.parseMessage(msg);
 				switch (cmd) {
 					case JOIN: {
@@ -164,16 +166,16 @@ void	Server::loopFds()
 					}
 					case NICK: {
 						users[i - 1]->setNickName(message.getNthWord(msg, 2));
-						std::cout << users[i - 1]->getNickName() << std::endl;
 						break ;
 					}
 					case PASS: {
 						break ;
 					}
 					case USER: {
-						std::cout << msg << std::endl;
 						users[i - 1]->setUserName(message.getNthWord(msg, 2));
-						message.sendReply(RPL_LOGGEDIN, this->hostname, *(users[i - 1]));
+						//message.sendMessage(*(users[i - 1]), ":127.0.0.1 CAP * LS :account-notify account-tag away-notify batch cap-notify chghost draft/relaymsg=/ echo-message extended-join inspircd.org/poison inspircd.org/standard-replies invite-notify labeled-response message-tags multi-prefix sasl=EXTERNAL,PLAIN server-time setname userhost-in-names\n");
+						message.sendMessage(*(users[i - 1]), ":127.0.0.1 CAP kabusitt ACK :sasl\n");
+						//message.sendReply(RPL_LOGGEDIN, this->hostname, *(users[i - 1]));
 						break ;
 					}
 					default:
