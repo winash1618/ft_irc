@@ -19,26 +19,28 @@
 #include "Message.hpp"
 #include "User.hpp"
 #include "Numerics.hpp"
-
+#include "Channel.hpp"
 #define SERVER_PORT 6667
 
 class User;
+class Channel;
 
 class Server {
 private:
-	int					sock;
-	int					port;
-	std::string			password;	
-	std::string			hostname;
-  	struct sockaddr_in6	addr;
-	std::vector<User*>	users;
-	Message				message;
-  	struct pollfd		fds[200];
-	int					nfds;
-	int					user_sd;
-	bool				close_conn;
-	bool				server_running;
-	bool				reorder_fds;
+	int						sock;
+	int						port;
+	std::string				password;	
+	std::string				hostname;
+  	struct sockaddr_in6		addr;
+	std::vector<User*>		users;
+	Message					message;
+  	struct pollfd			fds[200];
+	int						nfds;
+	int						user_sd;
+	bool					close_conn;
+	bool					server_running;
+	bool					reorder_fds;
+	std::vector<Channel*>	channels;
 public:
 	Server(std::string port, std::string password);
 	~Server();
