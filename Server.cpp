@@ -203,7 +203,16 @@ void	Server::loopFds()
 						break ;
 					}
 					case NICK: {
-						users[i - 1]->setNickName(this->message.getNthWord(msg, 2));
+						if (users[i - 1]->getNickName().empty())
+						{
+							users[i - 1]->setNickName(this->message.getNthWord(msg, 2));
+						}
+						else
+						{
+							std::string nickname = this->message.getNthWord(msg, 2);
+							message.sendMessage(*(users[i - 1]), ":" + users[i - 1]->getNickName() + " NICK " + nickname + "\n");
+							users[i - 1]->setNickName(nickname);
+						}
 						break ;
 					}
 					case PASS: {
@@ -226,20 +235,37 @@ void	Server::loopFds()
 						else if (users[i - 1]->getPassword().empty())
 						{
 							users[i - 1]->setPassword(message.getNthWord(msg, 2));
-							message.sendReply(RPL_LOGGEDIN, this->hostname, *(users[i - 1]));
+							message.sendReply(RPL_WELCOME, this->hostname, *(users[i - 1]));
 						}
 						break ;
 					}
 					case USER: {
-						users[i - 1]->setUserName(this->message.getNthWord(msg, 2));
-						std::string hostname = this->message.getNthWord(msg, 3);
-						if (hostname == "0")
-							message.sendMessage(*(users[i - 1]), ":" + this->hostname + " NOTICE * :*** Could not resolve your hostname: Domain not found; using your IP address ("+ users[i - 1]->getHostName() +") instead.\n");
+						if (users[i - 1]->getUserName().empty())
+						{
+							users[i - 1]->setUserName(this->message.getNthWord(msg, 2));
+							std::string hostname = this->message.getNthWord(msg, 3);
+							if (hostname == "0")
+								message.sendMessage(*(users[i - 1]), ":" + this->hostname + " NOTICE * :*** Could not resolve your hostname: Domain not found; using your IP address ("+ users[i - 1]->getHostName() +") instead.\n");
+							else
+								users[i - 1]->setHostName(hostname);
+							users[i - 1]->setIdent("~" + users[i - 1]->getNickName());
+							message.sendMessage(*(users[i - 1]), ":" + this->hostname + " NOTICE " + users[i - 1]->getNickName() + " :*** Could not find your ident, using " + users[i - 1]->getIdent() + " instead.\n");
+							message.sendMessage(*(users[i - 1]), ":" + this->hostname +" CAP " + users[i - 1]->getNickName() + " ACK :sasl\n");
+						}
 						else
-							users[i - 1]->setHostName(hostname);
-						users[i - 1]->setIdent("~" + users[i - 1]->getNickName());
-						message.sendMessage(*(users[i - 1]), ":" + this->hostname + " NOTICE kazem :*** Could not find your ident, using " + users[i - 1]->getIdent() + " instead.\n");
-						message.sendMessage(*(users[i - 1]), ":" + this->hostname +" CAP kabusitt ACK :sasl\n");
+						{
+							std::stringstream stream(msg);
+							size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
+							if (size != 5)
+							{
+								message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "USER");
+								message.sendReply(RPL_USERPARAMS, this->hostname, *(users[i - 1]));
+							}
+							else
+							{
+								message.sendReply(ERR_ALREADYREGISTRED, this->hostname, *(users[i - 1]));
+							}
+						}
 						break ;
 					}
 					default:
