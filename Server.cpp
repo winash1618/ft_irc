@@ -110,6 +110,15 @@ int	Server::socketAccept()
 	return (0);
 }
 
+bool	Server::nickNameExists(std::string nickname) {
+	for (std::vector<User*>::iterator it = this->users.begin(); it != this->users.end(); it++)
+	{
+		if ((*it)->getNickName() == nickname)
+			return true;
+	}
+	return false;
+}
+
 void	Server::loopFds()
 {
 	int current_size = this->nfds;
@@ -203,13 +212,19 @@ void	Server::loopFds()
 						break ;
 					}
 					case NICK: {
+						std::string nickname = this->message.getNthWord(msg, 2);
 						if (users[i - 1]->getNickName().empty())
 						{
 							users[i - 1]->setNickName(this->message.getNthWord(msg, 2));
 						}
+						else if (nickNameExists(nickname))
+						{
+							printf("hidfsdfdsf");
+							message.sendReply(ERR_NICKNAMEINUSE, this->hostname, *(users[i - 1]), nickname);
+						}
 						else
 						{
-							std::string nickname = this->message.getNthWord(msg, 2);
+							
 							message.sendMessage(*(users[i - 1]), ":" + users[i - 1]->getNickName() + " NICK " + nickname + "\n");
 							users[i - 1]->setNickName(nickname);
 						}

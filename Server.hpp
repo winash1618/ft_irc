@@ -58,6 +58,7 @@ public:
 	void		loopFds();
 	void		reorderFds();
 	bool		getServerRunning() const;
+	bool		nickNameExists(std::string nickname);
 	int			getSocket() const;
 	int			getNumberOfFds() const;
 	bool		getReorderFds() const;

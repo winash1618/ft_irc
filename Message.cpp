@@ -60,6 +60,11 @@ void	Message::sendReply(int numeric, const std::string& from, User &user, const 
 			msg += cmd + " :You may not reregister\n";
 			break ;
 		}
+		case ERR_NICKNAMEINUSE:
+		{
+			msg += cmd + " :Nickname is already in use\n";
+			break ;
+		}
 		default:
 		{
 			break ;
