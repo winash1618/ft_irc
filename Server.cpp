@@ -110,6 +110,15 @@ int	Server::socketAccept()
 	return (0);
 }
 
+bool	Server::nickNameExists(std::string nickname) {
+	for (std::vector<User*>::iterator it = this->users.begin(); it != this->users.end(); it++)
+	{
+		if ((*it)->getNickName() == nickname)
+			return true;
+	}
+	return false;
+}
+
 void	Server::loopFds()
 {
 	int current_size = this->nfds;
@@ -164,11 +173,61 @@ void	Server::loopFds()
 				std::cout << msg << std::endl;
 				int	cmd = this->message.parseMessage(msg);
 				switch (cmd) {
+					case MSG: {
+						std::string	name = this->message.getNthWord(msg, 2);
+						if (name[0] == '#')
+						{
+							for (std::vector<Channel*>::iterator it = this->channels.begin(); it != this->channels.end(); it++)
+							{
+								if ((*it)->getChannelName() == name)
+								{
+									std::string tmp = this->message.getNthWord(msg, 2);
+									(*it)->sendMessage(users[i - 1]->getNickName(), msg);
+								}
+							}
+						}
+						// else
+							// send message to person
+							// user who sent message users[i - 1]->getNickName();
+							// 2nd parameter will be the user to send to so you have to search in member variable users to find it.
+						break;
+					}
 					case JOIN: {
+						std::string name = message.getNthWord(msg, 2);
+						bool		found = false;
+						for (std::vector<Channel*>::iterator it = this->channels.begin(); it != this->channels.end(); it++)
+						{
+							if ((*it)->getChannelName() == name)
+							{
+								(*it)->addUser(users[i - 1]);
+								found = true;
+							}
+						}
+						if (!found)
+						{
+							Channel *channel = new Channel(name);
+							channel->addUser(users[i - 1]);
+							this->channels.push_back(channel);
+						}
 						break ;
 					}
 					case NICK: {
-						users[i - 1]->setNickName(this->message.getNthWord(msg, 2));
+						std::string nickname = this->message.getNthWord(msg, 2);
+						if (users[i - 1]->getNickName().empty())
+						{
+							users[i - 1]->setNickName(this->message.getNthWord(msg, 2));
+						}
+						else if (nickNameExists(nickname))
+						{
+							printf("hidfsdfdsf");
+							message.sendReply(ERR_NICKNAMEINUSE, this->hostname, *(users[i - 1]), nickname);
+						}
+						else
+						{
+							
+							message.sendMessage(*(users[i - 1]), ":" + users[i - 1]->getNickName() + " NICK " + nickname + "\n");
+							users[i - 1]->setNickName(nickname);
+						}
 						break ;
 					}
 					case PASS: {
@@ -191,18 +250,37 @@ void	Server::loopFds()
 						else if (users[i - 1]->getPassword().empty())
 						{
 							users[i - 1]->setPassword(message.getNthWord(msg, 2));
-							message.sendReply(RPL_LOGGEDIN, this->hostname, *(users[i - 1]));
+							message.sendReply(RPL_WELCOME, this->hostname, *(users[i - 1]));
 						}
 						break ;
 					}
 					case USER: {
-						users[i - 1]->setUserName(this->message.getNthWord(msg, 2));
-						std::string hostname = this->message.getNthWord(msg, 3);
-						if (hostname == "0")
-							message.sendMessage(*(users[i - 1]), ":" + this->hostname +" NOTICE * :*** Could not resolve your hostname: Domain not found; using your IP address ("+ users[i - 1]->getHostName() +") instead.\n");
+						if (users[i - 1]->getUserName().empty())
+						{
+							users[i - 1]->setUserName(this->message.getNthWord(msg, 2));
+							std::string hostname = this->message.getNthWord(msg, 3);
+							if (hostname == "0")
+								message.sendMessage(*(users[i - 1]), ":" + this->hostname + " NOTICE * :*** Could not resolve your hostname: Domain not found; using your IP address ("+ users[i - 1]->getHostName() +") instead.\n");
+							else
+								users[i - 1]->setHostName(hostname);
+							users[i - 1]->setIdent("~" + users[i - 1]->getNickName());
+							message.sendMessage(*(users[i - 1]), ":" + this->hostname + " NOTICE " + users[i - 1]->getNickName() + " :*** Could not find your ident, using " + users[i - 1]->getIdent() + " instead.\n");
+							message.sendMessage(*(users[i - 1]), ":" + this->hostname +" CAP " + users[i - 1]->getNickName() + " ACK :sasl\n");
+						}
 						else
-							users[i - 1]->setHostName(hostname);
-						message.sendMessage(*(users[i - 1]), ":" + this->hostname +" CAP kabusitt ACK :sasl\n");
+						{
+							std::stringstream stream(msg);
+							size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
+							if (size != 5)
+							{
+								message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "USER");
+								message.sendReply(RPL_USERPARAMS, this->hostname, *(users[i - 1]));
+							}
+							else
+							{
+								message.sendReply(ERR_ALREADYREGISTRED, this->hostname, *(users[i - 1]));
+							}
+						}
 						break ;
 					}
 					default:

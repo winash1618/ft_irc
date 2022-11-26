@@ -27,17 +27,42 @@ void	Message::sendReply(int numeric, const std::string& from, User &user, const 
 	std::string msg = ":" + from + " ";
 	std::stringstream ss;
 	ss << numeric;
-	msg += ss.str() + " ";
+	msg += ss.str() + " " + user.getNickName() + " ";
 	switch (numeric)
 	{
 		case RPL_LOGGEDIN:
 		{
-			msg += user.getNickName() + " " + user.getNickName() + "!" + user.getUserName() + "@" + user.getHostName() + " kabusitt :You are now logged in as " + user.getUserName() + "\n";
+			msg += user.getNickName() + "!" + user.getIdent() + "@" + user.getHostName() + " " + user.getNickName() + " :You are now logged in as " + user.getUserName() + "\n";
+			break ;
+		}
+		case RPL_WELCOME:
+		{
+			msg += ":Welcome to the ircserv Network " + user.getNickName() + "!" + user.getIdent() + "@" + user.getHostName() + "\n";
+			break ;
+		}
+		case RPL_USERPARAMS:
+		{
+			msg += ":USER <username> <unused> <unused> :<realname>\n";
 			break ;
 		}
 		case ERR_NEEDMOREPARAMS:
 		{
-			msg += cmd + " :Not enough parameters";
+			msg += cmd + " :Not enough parameters\n";
+			break ;
+		}
+		case ERR_UNKNOWNCOMMAND:
+		{
+			msg += cmd + " :Unknown command\n";
+			break ;
+		}
+		case ERR_ALREADYREGISTRED:
+		{
+			msg += cmd + " :You may not reregister\n";
+			break ;
+		}
+		case ERR_NICKNAMEINUSE:
+		{
+			msg += cmd + " :Nickname is already in use\n";
 			break ;
 		}
 		default:
@@ -68,6 +93,10 @@ int	Message::parseMessage(std::string msg)
 		else
 			return (AUTHENTICATE);
 	}
+	else if (command == "PRIVMSG")
+	{
+		return (MSG);
+	}
 	return (0);
 }
 
@@ -80,5 +109,6 @@ const std::string Message::getNthWord(std::string s, std::size_t n)
 
 void	Message::sendMessage(User &user, const std::string &msg)
 {
+	std::cout << msg << std::endl;
 	send(user.getSocket(), msg.c_str(), msg.length(), 0);
 }

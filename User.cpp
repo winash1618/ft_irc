@@ -49,3 +49,13 @@ void	User::setHostName(std::string hostname)
 {
 	this->hostname = hostname;
 }
+
+const std::string	User::getIdent() const
+{
+	return (this->ident);
+}
+
+void	User::setIdent(std::string ident)
+{
+	this->ident = ident;
+}
