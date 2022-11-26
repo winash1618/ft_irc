@@ -1,5 +1,14 @@
 #include "User.hpp"
 
+
+User::User(): registered(false), timeout(20000) {
+
+}
+
+User::~User() {
+	
+}
+
 const std::string User::getNickName() const
 {
 	return this->nickname;
@@ -58,4 +67,24 @@ const std::string	User::getIdent() const
 void	User::setIdent(std::string ident)
 {
 	this->ident = ident;
+}
+
+bool	User::getRegistered() const
+{
+	return (this->registered);
+}
+
+void	User::setRegistered(bool registered)
+{
+	this->registered = registered;
+}
+
+int	User::getTimeout() const
+{
+	return (this->timeout);
+}
+
+void	User::setTimeout(int timeout)
+{
+	this->timeout = timeout;
 }

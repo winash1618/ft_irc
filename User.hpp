@@ -15,10 +15,14 @@ private:
 	std::string				hostname;
 	std::string				ident;
 	std::string				mode;
+	bool					registered;
 	std::string				password;
 	int						socket;
+	int						timeout;
 	std::vector<Channel*>	channels;
 public:
+	User();
+	~User();
 	const std::string	getNickName() const;
 	void				setNickName(const std::string nickname);
 	int					getSocket() const;
@@ -32,6 +36,10 @@ public:
 	const std::string	getIdent() const;
 	void				setIdent(const std::string ident);
 	bool				isOperator(Channel channel) const;
+	bool				getRegistered() const;
+	void				setRegistered(bool registered);
+	int					getTimeout() const;
+	void				setTimeout(int timeout);
 };
 
 #endif

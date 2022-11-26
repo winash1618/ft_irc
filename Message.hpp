@@ -13,7 +13,7 @@ private:
 	std::string msg;
 public:
 	int					parseMessage(std::string msg);
-	const std::string	msgRecv(int sock, bool& close_conn);
+	const std::string	msgRecv(int sock, bool& close_conn, bool &chk);
 	void				sendReply(int numeric, const std::string& from, User& user, const std::string &cmd="");
 	void				sendMessage(User &user, const std::string &msg);
 	const std::string	getNthWord(std::string s, std::size_t n);

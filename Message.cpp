@@ -1,6 +1,6 @@
 #include "Message.hpp"
 
-const std::string	Message::msgRecv(int sock, bool &close_conn)
+const std::string	Message::msgRecv(int sock, bool &close_conn, bool &chk)
 {
 	char buffer[512];
 	int rc = recv(sock, buffer, sizeof(buffer), 0);
@@ -11,7 +11,8 @@ const std::string	Message::msgRecv(int sock, bool &close_conn)
 			close_conn = true;
 			throw Message::MessageError("receive() failed");
 		}
-		return "break";
+		chk = true;
+		return "";
 	}
 	if (rc == 0)
 	{
@@ -45,6 +46,16 @@ void	Message::sendReply(int numeric, const std::string& from, User &user, const 
 			msg += ":USER <username> <unused> <unused> :<realname>\n";
 			break ;
 		}
+		case RPL_YOURHOST:
+		{
+			msg += ":Your host is " + from + ", running version ircserv1.1\n";
+			break ;
+		}
+		case RPL_CREATED:
+		{
+			msg += ":This server was created 20/10/2022\n";
+			break ;
+		}
 		case ERR_NEEDMOREPARAMS:
 		{
 			msg += cmd + " :Not enough parameters\n";
@@ -60,9 +71,19 @@ void	Message::sendReply(int numeric, const std::string& from, User &user, const 
 			msg += cmd + " :You may not reregister\n";
 			break ;
 		}
+		case ERR_ERRONEUSNICKNAME:
+		{
+			msg += cmd + " :Erroneus nickname\n";
+			break ;
+		}
 		case ERR_NICKNAMEINUSE:
 		{
 			msg += cmd + " :Nickname is already in use\n";
+			break ;
+		}
+		case ERR_NOTREGISTERED:
+		{
+			msg += cmd + " :You have not registered\n";
 			break ;
 		}
 		default:
