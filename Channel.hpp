@@ -18,6 +18,7 @@ public:
 	~Channel();
 	const std::string	getChannelName() const;
 	void				addUser(User *user);
+	bool				userExists(const std::string &nickname);
 	void				sendMessage(const std::string &from, const std::string &msg);
 };
 

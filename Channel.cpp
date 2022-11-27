@@ -25,6 +25,16 @@ void	Channel::sendMessage(const std::string &from, const std::string &msg)
 	}
 }
 
+bool	Channel::userExists(const std::string &nickname)
+{
+	for (std::vector<User*>::iterator it = this->users.begin(); it != this->users.end(); it++)
+	{
+		if ((*it)->getNickName() == nickname)
+			return (true);
+	}
+	return (false);
+}
+
 void	Channel::addUser(User *user)
 {
 	this->users.push_back(user);

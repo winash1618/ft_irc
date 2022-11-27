@@ -59,7 +59,6 @@ void	Server::pollFdInit()
 
 void	Server::pollInit()
 {
-	printf("Waiting on poll()...\n");
     int rc = poll(this->fds, this->nfds, 1000);
 
     if (rc < 0)
@@ -187,8 +186,10 @@ void	Server::loopFds()
 								{
 									if ((*it)->getChannelName() == name)
 									{
-										std::string tmp = this->message.getNthWord(msg, 2);
-										(*it)->sendMessage(users[i - 1]->getNickName(), msg);
+										if ((*it)->userExists(users[i - 1]->getNickName()))
+											(*it)->sendMessage(users[i - 1]->getNickName(), msg);
+										else
+											this->message.sendReply(ERR_CANNOTSENDTOCHAN, this->hostname, *(users[i - 1]), name);
 									}
 								}
 							}
@@ -196,6 +197,14 @@ void	Server::loopFds()
 								// send message to person
 								// user who sent message users[i - 1]->getNickName();
 								// 2nd parameter will be the user to send to so you have to search in member variable users to find it.
+							break;
+						}
+						case PONG: {
+							break;
+						}
+						case QUIT: {
+							message.sendMessage(*(users[i - 1]), "ERROR :Closing link: (" + users[i - 1]->getNickName() + "@" + users[i - 1]->getHostName() + ") [Quit: ]\n");
+							this->close_conn = true;
 							break;
 						}
 						case JOIN: {
@@ -217,11 +226,10 @@ void	Server::loopFds()
 									channel->addUser(users[i - 1]);
 									this->channels.push_back(channel);
 								}
+								this->message.sendMessage(*(users[i - 1]), ":" + users[i - 1]->getNickName() + "!" + users[i - 1]->getIdent() + "@" + users[i - 1]->getHostName() + " JOIN :" + name + "\n");
 							}
 							else
-							{
 								message.sendReply(ERR_NOTREGISTERED, this->hostname, *(users[i - 1]), "JOIN");
-							}
 							break ;
 						}
 						case NICK: {

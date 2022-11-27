@@ -86,6 +86,11 @@ void	Message::sendReply(int numeric, const std::string& from, User &user, const 
 			msg += cmd + " :You have not registered\n";
 			break ;
 		}
+		case ERR_CANNOTSENDTOCHAN:
+		{
+			msg += cmd + " :Cannot send to channel\n";
+			break ;
+		}
 		default:
 		{
 			break ;
@@ -115,9 +120,11 @@ int	Message::parseMessage(std::string msg)
 			return (AUTHENTICATE);
 	}
 	else if (command == "PRIVMSG")
-	{
 		return (MSG);
-	}
+	else if (command == "PONG")
+		return (PONG);
+	else if (command == "QUIT")
+		return (QUIT);
 	return (0);
 }
 

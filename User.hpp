@@ -19,7 +19,6 @@ private:
 	std::string				password;
 	int						socket;
 	int						timeout;
-	std::vector<Channel*>	channels;
 public:
 	User();
 	~User();
