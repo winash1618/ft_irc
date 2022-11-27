@@ -86,6 +86,10 @@ int	Message::parseMessage(std::string msg)
 		return (PASS);
 	else if (command == "USER")
 		return (USER);
+	else if (command == "OPER")
+		return (OPER);
+	else if (command == "KILL")
+		return (KILL);
 	else if (command == "AUTHENTICATE")
 	{
 		if (getNthWord(msg, 2) == "PLAIN")

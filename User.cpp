@@ -59,3 +59,15 @@ void	User::setIdent(std::string ident)
 {
 	this->ident = ident;
 }
+
+bool	User::isOperator() const
+{
+	if (this->mode == "+o")
+		return true;
+	return false;
+}
+
+void	User::setUserMode(std::string mode)
+{
+	this->mode = mode;
+}

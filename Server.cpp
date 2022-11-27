@@ -254,6 +254,50 @@ void	Server::loopFds()
 						}
 						break ;
 					}
+					case OPER: {
+						std::stringstream stream(msg);
+						size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
+						std::string default_password = "hello";
+						if (size != 3)
+						{
+							message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "USER");
+						}
+						else if (message.getNthWord(msg, 3) != default_password)
+						{
+							message.sendReply(ERR_PASSWDMISMATCH, this->hostname, *(users[i - 1]));
+						}
+						else
+						{
+							message.sendReply(RPL_YOUREOPER, this->hostname, *(users[i - 1]));
+							users[i - 1]->setUserMode("+o");
+						}
+						break;
+					}
+					case KILL: {
+						std::stringstream stream(msg);
+						size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
+						if (size != 3)
+						{
+							message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "USER");
+						}
+						else if (!users[i - 1]->isOperator())
+						{
+							message.sendReply(ERR_NOPRIVILEGES, this->hostname, *(users[i - 1]));
+						}
+						else if (message.getNthWord(msg, 2) == hostname)
+						{
+							message.sendReply(ERR_CANTKILLSERVER, this->hostname, *(users[i - 1]));
+						}
+						else if (!nickNameExists(message.getNthWord(msg, 2)))
+						{
+							message.sendReply(ERR_NOSUCHNICK, this->hostname, *(users[i - 1]));
+						}
+						else
+						{
+							 
+						}
+						break;
+					}
 					case USER: {
 						if (users[i - 1]->getUserName().empty())
 						{
