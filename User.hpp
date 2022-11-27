@@ -29,9 +29,12 @@ public:
 	void				setPassword(const std::string password);
 	const std::string	getHostName() const;
 	void				setHostName(const std::string hostname);
+	void				setOperatorStatus(bool status);
 	const std::string	getIdent() const;
 	void				setIdent(const std::string ident);
-	bool				isOperator(Channel channel) const;
+	// bool				isOperator(Channel channel) const;
+	bool				isOperator() const;
+	void				setUserMode(std::string mode);
 };
 
 #endif
