@@ -275,6 +275,56 @@ void	Server::loopFds()
 								message.sendMessage(*(users[i - 1]), "AUTHENTICATE +\n");
 							break;
 						}
+						case AUTHENTICATE:
+						{
+							std::stringstream stream(msg);
+							size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
+							if (size == 1)
+							{
+								message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "AUTHENTICATE");
+							}
+							else if (users[i - 1]->getPassword().empty())
+							{
+								users[i - 1]->setPassword(message.getNthWord(msg, 2));
+								users[i - 1]->setRegistered(true);
+								message.sendReply(RPL_WELCOME, this->hostname, *(users[i - 1]));
+								message.sendReply(RPL_YOURHOST, this->hostname, *(users[i - 1]));
+								message.sendReply(RPL_CREATED, this->hostname, *(users[i - 1]));
+							}
+							break ;
+						}
+						case USER: {
+							if (users[i - 1]->getUserName().empty())
+							{
+								std::string nickname = users[i - 1]->getNickName();
+								users[i - 1]->setUserName(this->message.getNthWord(msg, 2));
+								std::string hostname = this->message.getNthWord(msg, 3);
+								if (hostname == "0")
+									message.sendMessage(*(users[i - 1]), ":" + this->hostname + " NOTICE * :*** Could not resolve your hostname: Domain not found; using your IP address ("+ users[i - 1]->getHostName() +") instead.\n");
+								else
+									users[i - 1]->setHostName(hostname);
+								if (nickname.find_first_not_of("0123456789") != std::string::npos) {
+									users[i - 1]->setIdent("~" + users[i - 1]->getNickName().substr(0, 9));
+									message.sendMessage(*(users[i - 1]), ":" + this->hostname + " NOTICE " + nickname + " :*** Could not find your ident, using " + users[i - 1]->getIdent() + " instead.\n");
+									message.sendMessage(*(users[i - 1]), ":" + this->hostname +" CAP " + nickname + " ACK :sasl\n");
+								}
+							}
+							else
+							{
+								std::stringstream stream(msg);
+								size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
+								if (size != 5)
+								{
+									message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "USER");
+									message.sendReply(RPL_USERPARAMS, this->hostname, *(users[i - 1]));
+								}
+								else
+								{
+									message.sendReply(ERR_ALREADYREGISTRED, this->hostname, *(users[i - 1]));
+								}
+							}
+							break ;
+						}
 						case OPER: {
 							std::stringstream stream(msg);
 							size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
@@ -362,38 +412,6 @@ void	Server::loopFds()
 								message.sendReply(RPL_NOWAWAY, this->hostname, *(users[i - 1]));
 							}
 							break;
-						}
-						case USER: {
-							if (users[i - 1]->getUserName().empty())
-							{
-								std::string nickname = users[i - 1]->getNickName();
-								users[i - 1]->setUserName(this->message.getNthWord(msg, 2));
-								std::string hostname = this->message.getNthWord(msg, 3);
-								if (hostname == "0")
-									message.sendMessage(*(users[i - 1]), ":" + this->hostname + " NOTICE * :*** Could not resolve your hostname: Domain not found; using your IP address ("+ users[i - 1]->getHostName() +") instead.\n");
-								else
-									users[i - 1]->setHostName(hostname);
-								if (nickname.find_first_not_of("0123456789") != std::string::npos) {
-									users[i - 1]->setIdent("~" + users[i - 1]->getNickName().substr(0, 9));
-									message.sendMessage(*(users[i - 1]), ":" + this->hostname + " NOTICE " + nickname + " :*** Could not find your ident, using " + users[i - 1]->getIdent() + " instead.\n");
-									message.sendMessage(*(users[i - 1]), ":" + this->hostname +" CAP " + nickname + " ACK :sasl\n");
-								}
-							}
-							else
-							{
-								std::stringstream stream(msg);
-								size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
-								if (size != 5)
-								{
-									message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "USER");
-									message.sendReply(RPL_USERPARAMS, this->hostname, *(users[i - 1]));
-								}
-								else
-								{
-									message.sendReply(ERR_ALREADYREGISTRED, this->hostname, *(users[i - 1]));
-								}
-							}
-							break ;
 						}
 						default:
 						{
