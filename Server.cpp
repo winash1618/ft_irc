@@ -338,7 +338,7 @@ void	Server::loopFds()
 							std::size_t pos = msg.find("AWAY");
 							std::string away_message = msg.substr(pos + 4);
 							users[i - 1]->setAwayMsg(away_message);
-							message.sendReply(RPL_UNAWAY, this->hostname, *(users[i - 1]));
+							message.sendReply(RPL_NOWAWAY, this->hostname, *(users[i - 1]));
 						}
 						break;
 					}

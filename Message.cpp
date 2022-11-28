@@ -40,6 +40,26 @@ void	Message::sendReply(int numeric, const std::string& from, User &user, const 
 			msg += ":Welcome to the ircserv Network " + user.getNickName() + "!" + user.getIdent() + "@" + user.getHostName() + "\n";
 			break ;
 		}
+		case RPL_AWAY:
+		{
+			msg += user.getNickName() + ":" + user.getAwayMsg() + "\n";
+			break ;
+		}
+		case RPL_NOWAWAY:
+		{
+			msg += ":You have been marked as being away\n";
+			break ;
+		}
+		case RPL_UNAWAY:
+		{
+			msg += ":You are no longer marked as being away\n";
+			break ;
+		}
+		case RPL_YOUREOPER:
+		{
+			msg += ":You are now an IRC operator\n";
+			break ;
+		}
 		case RPL_USERPARAMS:
 		{
 			msg += ":USER <username> <unused> <unused> :<realname>\n";
@@ -62,12 +82,12 @@ void	Message::sendReply(int numeric, const std::string& from, User &user, const 
 		}
 		case ERR_NICKNAMEINUSE:
 		{
-			msg += cmd + " :Permission Denied- You're not an IRC operator\n";
+			msg += cmd + " :Nickname is already in use\n";
 			break ;
 		}
 		case ERR_NOPRIVILEGES:
 		{
-			msg += cmd + " :Nickname is already in use\n";
+			msg += cmd + " :Permission Denied- You're not an IRC operator\n";
 			break ;
 		}
 		case ERR_CANTKILLSERVER:
@@ -78,6 +98,11 @@ void	Message::sendReply(int numeric, const std::string& from, User &user, const 
 		case ERR_NOSUCHNICK:
 		{
 			msg += cmd + " " + user.getNickName() + " :You cant kill a server!\n";
+			break ;
+		}
+		case ERR_PASSWDMISMATCH:
+		{
+			msg += cmd + " :Password incorrect\n";
 			break ;
 		}
 		default:
