@@ -275,23 +275,49 @@ void	Server::loopFds()
 								message.sendMessage(*(users[i - 1]), "AUTHENTICATE +\n");
 							break;
 						}
-						case AUTHENTICATE:
-						{
+						case OPER: {
 							std::stringstream stream(msg);
 							size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
-							if (size == 1)
+							std::string default_password = "hello";
+							if (size != 3)
 							{
-								message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "AUTHENTICATE");
+								message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "USER");
 							}
-							else if (users[i - 1]->getPassword().empty())
+							else if (message.getNthWord(msg, 3) != default_password)
 							{
-								users[i - 1]->setPassword(message.getNthWord(msg, 2));
-								users[i - 1]->setRegistered(true);
-								message.sendReply(RPL_WELCOME, this->hostname, *(users[i - 1]));
-								message.sendReply(RPL_YOURHOST, this->hostname, *(users[i - 1]));
-								message.sendReply(RPL_CREATED, this->hostname, *(users[i - 1]));
+								message.sendReply(ERR_PASSWDMISMATCH, this->hostname, *(users[i - 1]));
 							}
-							break ;
+							else
+							{
+								message.sendReply(RPL_YOUREOPER, this->hostname, *(users[i - 1]));
+								users[i - 1]->setUserMode("+o");
+							}
+							break;
+						}
+						case KILL: {
+							std::stringstream stream(msg);
+							size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
+							if (size != 3)
+							{
+								message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "USER");
+							}
+							else if (!users[i - 1]->isOperator())
+							{
+								message.sendReply(ERR_NOPRIVILEGES, this->hostname, *(users[i - 1]));
+							}
+							else if (message.getNthWord(msg, 2) == hostname)
+							{
+								message.sendReply(ERR_CANTKILLSERVER, this->hostname, *(users[i - 1]));
+							}
+							else if (!nickNameExists(message.getNthWord(msg, 2)))
+							{
+								message.sendReply(ERR_NOSUCHNICK, this->hostname, *(users[i - 1]));
+							}
+							else
+							{
+								
+							}
+							break;
 						}
 						case USER: {
 							if (users[i - 1]->getUserName().empty())

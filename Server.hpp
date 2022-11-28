@@ -56,6 +56,7 @@ public:
 	void		pollInit();
 	void		pollFdInit();
 	void		loopFds();
+	void		commandRun();
 	void		reorderFds();
 	bool		getServerRunning() const;
 	bool		nickNameExists(std::string nickname);
