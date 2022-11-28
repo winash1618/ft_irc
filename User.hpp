@@ -15,6 +15,7 @@ private:
 	std::string				hostname;
 	std::string				ident;
 	std::string				mode;
+	std::string				away_msg;
 	std::string				password;
 	int						socket;
 	std::vector<Channel*>	channels;
@@ -35,6 +36,8 @@ public:
 	// bool				isOperator(Channel channel) const;
 	bool				isOperator() const;
 	void				setUserMode(std::string mode);
+	const std::string	getAwayMsg() const;
+	void				setAwayMsg(std::string away_msg);
 };
 
 #endif

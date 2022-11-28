@@ -71,3 +71,13 @@ void	User::setUserMode(std::string mode)
 {
 	this->mode = mode;
 }
+
+const std::string	User::getAwayMsg() const
+{
+	return (this->away_msg);
+}
+
+void	User::setAwayMsg(std::string away_msg)
+{
+	this->away_msg = away_msg;
+}

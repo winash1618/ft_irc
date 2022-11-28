@@ -62,7 +62,22 @@ void	Message::sendReply(int numeric, const std::string& from, User &user, const 
 		}
 		case ERR_NICKNAMEINUSE:
 		{
+			msg += cmd + " :Permission Denied- You're not an IRC operator\n";
+			break ;
+		}
+		case ERR_NOPRIVILEGES:
+		{
 			msg += cmd + " :Nickname is already in use\n";
+			break ;
+		}
+		case ERR_CANTKILLSERVER:
+		{
+			msg += cmd + " :You cant kill a server!\n";
+			break ;
+		}
+		case ERR_NOSUCHNICK:
+		{
+			msg += cmd + " " + user.getNickName() + " :You cant kill a server!\n";
 			break ;
 		}
 		default:
@@ -90,6 +105,10 @@ int	Message::parseMessage(std::string msg)
 		return (OPER);
 	else if (command == "KILL")
 		return (KILL);
+	else if (command == "SQUIT")
+		return (SQUIT);
+	else if (command == "AWAY")
+		return (AWAY);
 	else if (command == "AUTHENTICATE")
 	{
 		if (getNthWord(msg, 2) == "PLAIN")
