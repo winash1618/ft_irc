@@ -110,6 +110,10 @@ bool	Server::nickNameExists(std::string nickname) {
 	return false;
 }
 
+void	Server::commandRun()
+{
+}
+
 void	Server::loopFds()
 {
 	int current_size = this->nfds;
@@ -177,8 +181,10 @@ void	Server::loopFds()
 						break ;
 					std::cout << msg << std::endl;
 					int	cmd = this->message.parseMessage(msg);
-					switch (cmd) {
-						case MSG: {
+					switch (cmd)
+					{
+						case MSG:
+						{
 							std::string	name = this->message.getNthWord(msg, 2);
 							if (name[0] == '#')
 							{
