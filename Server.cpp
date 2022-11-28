@@ -347,7 +347,8 @@ void	Server::loopFds()
 						case KILL: {
 							std::stringstream stream(msg);
 							size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
-							if (size != 3)
+							std::cout << size << std::endl;
+							if (size < 3 && nickNameExists(message.getNthWord(msg, 2)))
 							{
 								message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "USER");
 							}
@@ -365,12 +366,22 @@ void	Server::loopFds()
 							}
 							else
 							{
-								for (std::vector<User*>::iterator it = this->users.begin(); it != this->users.end(); it++)
+								std::vector<User*>::iterator it = this->users.begin();
+								size_t pos = 0;
+								while ( it != this->users.end())
 								{
 									if ((*it)->getNickName() == message.getNthWord(msg, 2))
 									{
+										
 										it = users.erase(it);
+										this->reorder_fds = true;
+										close(fds[pos + 1].fd);
+										fds[pos + 1].fd = -1;
+										this->reorderFds();
+										break;
 									}
+									pos++;
+									it++;
 								}
 							}
 							break;
@@ -378,7 +389,7 @@ void	Server::loopFds()
 						case SQUIT: {
 							std::stringstream stream(msg);
 							size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
-							if (size != 3)
+							if (message.getNthWord(msg, 2) == hostname && size < 3)
 							{
 								message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "USER");
 							}
@@ -392,7 +403,16 @@ void	Server::loopFds()
 							}
 							else
 							{
+								std::vector<User*>::iterator it = this->users.begin();
 								this->close_conn = true;
+								size_t pos = 0;
+								while ( it != this->users.end())
+								{
+									fds[pos + 1].fd = -1;
+									pos++;
+									it++;
+								}
+								fds[0].fd = -1;
 							}
 							break;
 						}
