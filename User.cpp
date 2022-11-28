@@ -69,7 +69,6 @@ void	User::setIdent(std::string ident)
 	this->ident = ident;
 }
 
-<<<<<<< HEAD
 bool	User::getRegistered() const
 {
 	return (this->registered);
@@ -88,7 +87,8 @@ int	User::getTimeout() const
 void	User::setTimeout(int timeout)
 {
 	this->timeout = timeout;
-=======
+}
+
 bool	User::isOperator() const
 {
 	if (this->mode == "+o")
@@ -99,5 +99,14 @@ bool	User::isOperator() const
 void	User::setUserMode(std::string mode)
 {
 	this->mode = mode;
->>>>>>> d30e483888fef4229611ecdf8449c8d642d34694
+}
+
+const std::string	User::getAwayMsg() const
+{
+	return (this->away_msg);
+}
+
+void	User::setAwayMsg(std::string away_msg)
+{
+	this->away_msg = away_msg;
 }

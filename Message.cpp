@@ -41,6 +41,26 @@ void	Message::sendReply(int numeric, const std::string& from, User &user, const 
 			msg += ":Welcome to the ircserv Network " + user.getNickName() + "!" + user.getIdent() + "@" + user.getHostName() + "\n";
 			break ;
 		}
+		case RPL_AWAY:
+		{
+			msg += user.getNickName() + ":" + user.getAwayMsg() + "\n";
+			break ;
+		}
+		case RPL_NOWAWAY:
+		{
+			msg += ":You have been marked as being away\n";
+			break ;
+		}
+		case RPL_UNAWAY:
+		{
+			msg += ":You are no longer marked as being away\n";
+			break ;
+		}
+		case RPL_YOUREOPER:
+		{
+			msg += ":You are now an IRC operator\n";
+			break ;
+		}
 		case RPL_USERPARAMS:
 		{
 			msg += ":USER <username> <unused> <unused> :<realname>\n";
@@ -89,6 +109,25 @@ void	Message::sendReply(int numeric, const std::string& from, User &user, const 
 		case ERR_CANNOTSENDTOCHAN:
 		{
 			msg += cmd + " :Cannot send to channel\n";
+		}
+		case ERR_NOPRIVILEGES:
+		{
+			msg += cmd + " :Permission Denied- You're not an IRC operator\n";
+			break ;
+		}
+		case ERR_CANTKILLSERVER:
+		{
+			msg += cmd + " :You cant kill a server!\n";
+			break ;
+		}
+		case ERR_NOSUCHNICK:
+		{
+			msg += cmd + " " + user.getNickName() + " :You cant kill a server!\n";
+			break ;
+		}
+		case ERR_PASSWDMISMATCH:
+		{
+			msg += cmd + " :Password incorrect\n";
 			break ;
 		}
 		default:
@@ -116,6 +155,10 @@ int	Message::parseMessage(std::string msg)
 		return (OPER);
 	else if (command == "KILL")
 		return (KILL);
+	else if (command == "SQUIT")
+		return (SQUIT);
+	else if (command == "AWAY")
+		return (AWAY);
 	else if (command == "AUTHENTICATE")
 	{
 		if (getNthWord(msg, 2) == "PLAIN")

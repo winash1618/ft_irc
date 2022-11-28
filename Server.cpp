@@ -315,7 +315,51 @@ void	Server::loopFds()
 							}
 							else
 							{
-								
+								for (std::vector<User*>::iterator it = this->users.begin(); it != this->users.end(); it++)
+								{
+									if ((*it)->getNickName() == message.getNthWord(msg, 2))
+									{
+										it = users.erase(it);
+									}
+								}
+							}
+							break;
+						}
+						case SQUIT: {
+							std::stringstream stream(msg);
+							size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
+							if (size != 3)
+							{
+								message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "USER");
+							}
+							else if (!users[i - 1]->isOperator())
+							{
+								message.sendReply(ERR_NOPRIVILEGES, this->hostname, *(users[i - 1]));
+							}
+							else if (message.getNthWord(msg, 2) != hostname)
+							{
+								message.sendReply(ERR_NOSUCHSERVER, this->hostname, *(users[i - 1]));
+							}
+							else
+							{
+								this->close_conn = true;
+							}
+							break;
+						}
+						case AWAY: {
+							std::stringstream stream(msg);
+							size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
+							if (size == 1)
+							{
+								users[i - 1]->setAwayMsg("");
+								message.sendReply(RPL_UNAWAY, this->hostname, *(users[i - 1]));
+							}
+							else
+							{
+								std::size_t pos = msg.find("AWAY");
+								std::string away_message = msg.substr(pos + 4);
+								users[i - 1]->setAwayMsg(away_message);
+								message.sendReply(RPL_NOWAWAY, this->hostname, *(users[i - 1]));
 							}
 							break;
 						}

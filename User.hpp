@@ -16,6 +16,7 @@ private:
 	std::string				ident;
 	std::string				mode;
 	bool					registered;
+	std::string				away_msg;
 	std::string				password;
 	int						socket;
 	int						timeout;
@@ -35,17 +36,14 @@ public:
 	void				setOperatorStatus(bool status);
 	const std::string	getIdent() const;
 	void				setIdent(const std::string ident);
-<<<<<<< HEAD
-	bool				isOperator(Channel channel) const;
 	bool				getRegistered() const;
 	void				setRegistered(bool registered);
 	int					getTimeout() const;
 	void				setTimeout(int timeout);
-=======
-	// bool				isOperator(Channel channel) const;
 	bool				isOperator() const;
 	void				setUserMode(std::string mode);
->>>>>>> d30e483888fef4229611ecdf8449c8d642d34694
+	const std::string	getAwayMsg() const;
+	void				setAwayMsg(std::string away_msg);
 };
 
 #endif
