@@ -340,14 +340,26 @@ void	Server::loopFds()
 							else
 							{
 								message.sendReply(RPL_YOUREOPER, this->hostname, *(users[i - 1]));
-								users[i - 1]->setUserMode("+o");
+								users[i - 1]->setUserMode("o");
+							}
+							break;
+						}
+						case TIME: {
+							std::stringstream stream(msg);
+							size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
+							if (size == 1)
+							{
+								message.sendReply(RPL_TIME, this->hostname, *(users[i - 1]));
+							}
+							else if (message.getNthWord(msg, 2) != hostname)
+							{
+								message.sendReply(ERR_NOSUCHSERVER, this->hostname, *(users[i - 1]));
 							}
 							break;
 						}
 						case KILL: {
 							std::stringstream stream(msg);
 							size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
-							std::cout << size << std::endl;
 							if (size < 3 && nickNameExists(message.getNthWord(msg, 2)))
 							{
 								message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "USER");
@@ -362,7 +374,7 @@ void	Server::loopFds()
 							}
 							else if (!nickNameExists(message.getNthWord(msg, 2)))
 							{
-								message.sendReply(ERR_NOSUCHNICK, this->hostname, *(users[i - 1]));
+								message.sendReply(ERR_NOSUCHNICK, this->hostname, *(users[i - 1]), message.getNthWord(msg, 2));
 							}
 							else
 							{

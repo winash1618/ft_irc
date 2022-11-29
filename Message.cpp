@@ -76,6 +76,14 @@ void	Message::sendReply(int numeric, const std::string& from, User &user, const 
 			msg += ":This server was created 20/10/2022\n";
 			break ;
 		}
+		case RPL_TIME:
+		{
+			time_t now = time(0);
+			char* dt = ctime(&now);
+			std::string str(dt);
+			msg += user.getHostName() + " " + str + "\n";
+			break ;
+		}
 		case ERR_NEEDMOREPARAMS:
 		{
 			msg += cmd + " :Not enough parameters\n";
@@ -122,12 +130,17 @@ void	Message::sendReply(int numeric, const std::string& from, User &user, const 
 		}
 		case ERR_NOSUCHNICK:
 		{
-			msg += cmd + " " + user.getNickName() + " :You cant kill a server!\n";
+			msg += cmd + " :You cant kill a server!\n";
 			break ;
 		}
 		case ERR_PASSWDMISMATCH:
 		{
-			msg += cmd + " :Password incorrect\n";
+			msg += " :Password incorrect\n";
+			break ;
+		}
+		case ERR_NOSUCHSERVER:
+		{
+			msg += user.getHostName() +" :No such server\n";
 			break ;
 		}
 		default:
@@ -159,6 +172,8 @@ int	Message::parseMessage(std::string msg)
 		return (SQUIT);
 	else if (command == "AWAY")
 		return (AWAY);
+	else if (command == "TIME")
+		return (TIME);
 	else if (command == "AUTHENTICATE")
 	{
 		if (getNthWord(msg, 2) == "PLAIN")

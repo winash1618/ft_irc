@@ -91,14 +91,17 @@ void	User::setTimeout(int timeout)
 
 bool	User::isOperator() const
 {
-	if (this->mode == "+o")
+	char ch = 'o';
+	if (this->mode.find(ch) != std::string::npos)
 		return true;
 	return false;
 }
 
 void	User::setUserMode(std::string mode)
 {
-	this->mode = mode;
+	char ch = 'o';
+	if (this->mode.find(ch) == std::string::npos)
+		this->mode += mode;
 }
 
 const std::string	User::getAwayMsg() const

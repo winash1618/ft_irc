@@ -7,6 +7,7 @@
 #include "User.hpp"
 #include <sstream>
 #include <sys/socket.h>
+#include <ctime>
 
 class Message {
 private:
