@@ -76,6 +76,21 @@ void	Message::sendReply(int numeric, const std::string& from, User &user, const 
 			msg += ":This server was created 20/10/2022\n";
 			break ;
 		}
+		case RPL_MOTDSTART:
+		{
+			msg += ":" + from + " message of the day\n";
+			break ;
+		}
+		case RPL_MOTD:
+		{
+			msg += ": " + cmd + "\n";
+			break ;
+		}
+		case RPL_ENDOFMOTD:
+		{
+			msg += ":End of message of the day.\n";
+			break ;
+		}
 		case RPL_TIME:
 		{
 			time_t now = time(0);

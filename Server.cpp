@@ -343,6 +343,20 @@ void	Server::commandRun(const std::string &msg, int i)
 				message.sendReply(RPL_WELCOME, this->hostname, *(users[i - 1]));
 				message.sendReply(RPL_YOURHOST, this->hostname, *(users[i - 1]));
 				message.sendReply(RPL_CREATED, this->hostname, *(users[i - 1]));
+				message.sendReply(RPL_MOTDSTART, this->hostname, *(users[i - 1]));
+				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "The commands that you have available");
+				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "/join <channel>");
+				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "/msg <nickname|channel>");
+				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "/oper <user> <passowrd>");
+				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "/away");
+				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "/nick <nickname>");
+				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "/squit");
+				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "The commands that you have available");
+				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "The commands that you have available");
+				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "The commands that you have available");
+				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "The commands that you have available");
+				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "The commands that you have available");
+				message.sendReply(RPL_ENDOFMOTD, this->hostname, *(users[i - 1]));
 			}
 			break ;
 		}
