@@ -110,8 +110,310 @@ bool	Server::nickNameExists(std::string nickname) {
 	return false;
 }
 
-void	Server::commandRun()
+void	Server::privMsgCommand(const std::string &msg, int i)
 {
+	std::string	name = this->message.getNthWord(msg, 2);
+	if (name[0] == '#')
+	{
+		for (std::vector<Channel*>::iterator it = this->channels.begin(); it != this->channels.end(); it++)
+		{
+			if ((*it)->getChannelName() == name)
+			{
+				if ((*it)->userExists(users[i - 1]->getNickName()))
+					(*it)->sendMessage(users[i - 1]->getNickName(), msg);
+				else
+					this->message.sendReply(ERR_CANNOTSENDTOCHAN, this->hostname, *(users[i - 1]), name);
+			}
+		}
+	}
+	// else
+		// send message to person
+		// user who sent message users[i - 1]->getNickName();
+		// 2nd parameter will be the user to send to so you have to search in member variable users to find it.
+}
+
+void	Server::joinCommand(const std::string &msg, int i)
+{
+	if (users[i - 1]->getRegistered())
+	{
+		std::string name = message.getNthWord(msg, 2);
+		bool		found = false;
+		for (std::vector<Channel*>::iterator it = this->channels.begin(); it != this->channels.end(); it++)
+		{
+			if ((*it)->getChannelName() == name)
+			{
+				(*it)->addUser(users[i - 1]);
+				found = true;
+			}
+		}
+		if (!found)
+		{
+			Channel *channel = new Channel(name);
+			channel->addUser(users[i - 1]);
+			this->channels.push_back(channel);
+		}
+		this->message.sendMessage(*(users[i - 1]), ":" + users[i - 1]->getNickName() + "!" + users[i - 1]->getIdent() + "@" + users[i - 1]->getHostName() + " JOIN :" + name + "\n");
+	}
+	else
+		message.sendReply(ERR_NOTREGISTERED, this->hostname, *(users[i - 1]), "JOIN");
+}
+
+void	Server::killCommand(const std::string &msg, int i)
+{
+	std::stringstream stream(msg);
+	size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
+	if (size < 3 && nickNameExists(message.getNthWord(msg, 2)))
+	{
+		message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "USER");
+	}
+	else if (!users[i - 1]->isOperator())
+	{
+		message.sendReply(ERR_NOPRIVILEGES, this->hostname, *(users[i - 1]));
+	}
+	else if (message.getNthWord(msg, 2) == hostname)
+	{
+		message.sendReply(ERR_CANTKILLSERVER, this->hostname, *(users[i - 1]));
+	}
+	else if (!nickNameExists(message.getNthWord(msg, 2)))
+	{
+		message.sendReply(ERR_NOSUCHNICK, this->hostname, *(users[i - 1]), message.getNthWord(msg, 2));
+	}
+	else
+	{
+		std::vector<User*>::iterator it = this->users.begin();
+		size_t pos = 0;
+		while ( it != this->users.end())
+		{
+			if ((*it)->getNickName() == message.getNthWord(msg, 2))
+			{
+				
+				it = users.erase(it);
+				this->reorder_fds = true;
+				close(fds[pos + 1].fd);
+				fds[pos + 1].fd = -1;
+				this->reorderFds();
+				break;
+			}
+			pos++;
+			it++;
+		}
+	}
+}
+void	Server::userCommand(const std::string &msg, int i)
+{
+	if (users[i - 1]->getUserName().empty())
+	{
+		std::string nickname = users[i - 1]->getNickName();
+		users[i - 1]->setUserName(this->message.getNthWord(msg, 2));
+		std::string hostname = this->message.getNthWord(msg, 3);
+		if (hostname == "0")
+			message.sendMessage(*(users[i - 1]), ":" + this->hostname + " NOTICE * :*** Could not resolve your hostname: Domain not found; using your IP address ("+ users[i - 1]->getHostName() +") instead.\n");
+		else
+			users[i - 1]->setHostName(hostname);
+		if (nickname.find_first_not_of("0123456789") != std::string::npos) {
+			users[i - 1]->setIdent("~" + users[i - 1]->getNickName().substr(0, 9));
+			message.sendMessage(*(users[i - 1]), ":" + this->hostname + " NOTICE " + nickname + " :*** Could not find your ident, using " + users[i - 1]->getIdent() + " instead.\n");
+			message.sendMessage(*(users[i - 1]), ":" + this->hostname +" CAP " + nickname + " ACK :sasl\n");
+		}
+	}
+	else
+	{
+		std::stringstream stream(msg);
+		size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
+		if (size != 5)
+		{
+			message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "USER");
+			message.sendReply(RPL_USERPARAMS, this->hostname, *(users[i - 1]));
+		}
+		else
+		{
+			message.sendReply(ERR_ALREADYREGISTRED, this->hostname, *(users[i - 1]));
+		}
+	}
+}
+
+void	Server::nickCommand(const std::string &msg, int i)
+{
+	std::string nickname = this->message.getNthWord(msg, 2);
+	if (users[i - 1]->getNickName().empty())
+			users[i - 1]->setNickName(nickname);
+	else if (nickNameExists(nickname))
+		message.sendReply(ERR_NICKNAMEINUSE, this->hostname, *(users[i - 1]), nickname);
+	else
+	{
+		if (nickname.find_first_not_of("0123456789") == std::string::npos)
+			message.sendReply(ERR_ERRONEUSNICKNAME, this->hostname, *(users[i - 1]), nickname);
+		else
+		{
+			if (!users[i - 1]->getRegistered())
+			{
+				users[i - 1]->setNickName(nickname);
+				users[i - 1]->setIdent("~" + users[i - 1]->getNickName().substr(0, 9));
+				message.sendMessage(*(users[i - 1]), ":" + this->hostname + " NOTICE " + nickname + " :*** Ident lookup timed out, using " + users[i - 1]->getIdent() + " instead.\n");
+				message.sendMessage(*(users[i - 1]), ":" + this->hostname +" CAP " + nickname + " ACK :sasl\n");
+			}
+			else
+			{
+				message.sendMessage(*(users[i - 1]), ":" + users[i - 1]->getNickName() + " NICK " + nickname + "\n");
+				users[i - 1]->setNickName(nickname);
+			}
+		}
+	}
+}
+
+
+void	Server::sQuitCommand(const std::string &msg, int i)
+{
+	std::stringstream stream(msg);
+	size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
+	if (message.getNthWord(msg, 2) == hostname && size < 3)
+	{
+		message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "USER");
+	}
+	else if (!users[i - 1]->isOperator())
+	{
+		message.sendReply(ERR_NOPRIVILEGES, this->hostname, *(users[i - 1]));
+	}
+	else if (message.getNthWord(msg, 2) != hostname)
+	{
+		message.sendReply(ERR_NOSUCHSERVER, this->hostname, *(users[i - 1]));
+	}
+	else
+	{
+		std::vector<User*>::iterator it = this->users.begin();
+		this->close_conn = true;
+		size_t pos = 0;
+		while ( it != this->users.end())
+		{
+			fds[pos + 1].fd = -1;
+			pos++;
+			it++;
+		}
+		fds[0].fd = -1;
+	}
+}
+
+void	Server::commandRun(const std::string &msg, int i)
+{
+	int	cmd = this->message.parseMessage(msg);
+	switch (cmd)
+	{
+		case MSG:
+		{
+			privMsgCommand(msg, i);
+			break;
+		}
+		case PONG: {
+			break;
+		}
+		case QUIT: {
+			message.sendMessage(*(users[i - 1]), "ERROR :Closing link: (" + users[i - 1]->getNickName() + "@" + users[i - 1]->getHostName() + ") [Quit: ]\n");
+			this->close_conn = true;
+			break;
+		}
+		case JOIN: {
+			joinCommand(msg, i);
+			break ;
+		}
+		case NICK: {
+			nickCommand(msg, i);
+			break ;
+		}
+		case PASS: {
+			break ;
+		}
+		case PLAIN: {
+
+			if (users[i - 1]->getPassword().empty())
+				message.sendMessage(*(users[i - 1]), "AUTHENTICATE +\n");
+			break;
+		}
+		case AUTHENTICATE:
+		{
+			std::stringstream stream(msg);
+			size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
+			if (size == 1)
+			{
+				message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "AUTHENTICATE");
+			}
+			else if (users[i - 1]->getPassword().empty())
+			{
+				users[i - 1]->setPassword(message.getNthWord(msg, 2));
+				users[i - 1]->setRegistered(true);
+				message.sendReply(RPL_WELCOME, this->hostname, *(users[i - 1]));
+				message.sendReply(RPL_YOURHOST, this->hostname, *(users[i - 1]));
+				message.sendReply(RPL_CREATED, this->hostname, *(users[i - 1]));
+			}
+			break ;
+		}
+		case USER: {
+			userCommand(msg, i);
+			break ;
+		}
+		case OPER: {
+			std::stringstream stream(msg);
+			size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
+			std::string default_password = "hello";
+			if (size != 3)
+			{
+				message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "USER");
+			}
+			else if (message.getNthWord(msg, 3) != default_password)
+			{
+				message.sendReply(ERR_PASSWDMISMATCH, this->hostname, *(users[i - 1]));
+			}
+			else
+			{
+				message.sendReply(RPL_YOUREOPER, this->hostname, *(users[i - 1]));
+				users[i - 1]->setUserMode("o");
+			}
+			break;
+		}
+		case KILL: {
+			killCommand(msg, i);
+			break;
+		}
+		case SQUIT: {
+			sQuitCommand(msg, i);
+			break;
+		}
+		case AWAY: {
+			std::stringstream stream(msg);
+			size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
+			if (size == 1)
+			{
+				users[i - 1]->setAwayMsg("");
+				message.sendReply(RPL_UNAWAY, this->hostname, *(users[i - 1]));
+			}
+			else
+			{
+				std::size_t pos = msg.find("AWAY");
+				std::string away_message = msg.substr(pos + 4);
+				users[i - 1]->setAwayMsg(away_message);
+				message.sendReply(RPL_NOWAWAY, this->hostname, *(users[i - 1]));
+			}
+			break;
+		}
+		case TIME:
+		{
+			std::stringstream stream(msg);
+			size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
+			if (size == 1)
+			{
+				message.sendReply(RPL_TIME, this->hostname, *(users[i - 1]));
+			}
+			else if (message.getNthWord(msg, 2) != hostname)
+			{
+				message.sendReply(ERR_NOSUCHSERVER, this->hostname, *(users[i - 1]));
+			}
+			break;
+		}
+		default:
+		{
+			message.sendReply(ERR_UNKNOWNCOMMAND, this->hostname, *(users[i - 1]), message.getNthWord(msg, 1));
+			break ;
+		}
+	}
 }
 
 void	Server::loopFds()
@@ -179,278 +481,7 @@ void	Server::loopFds()
 					std::string msg = this->message.msgRecv(fds[i].fd, this->close_conn, chk);
 					if (chk)
 						break ;
-					std::cout << msg << std::endl;
-					int	cmd = this->message.parseMessage(msg);
-					switch (cmd)
-					{
-						case MSG:
-						{
-							std::string	name = this->message.getNthWord(msg, 2);
-							if (name[0] == '#')
-							{
-								for (std::vector<Channel*>::iterator it = this->channels.begin(); it != this->channels.end(); it++)
-								{
-									if ((*it)->getChannelName() == name)
-									{
-										if ((*it)->userExists(users[i - 1]->getNickName()))
-											(*it)->sendMessage(users[i - 1]->getNickName(), msg);
-										else
-											this->message.sendReply(ERR_CANNOTSENDTOCHAN, this->hostname, *(users[i - 1]), name);
-									}
-								}
-							}
-							// else
-								// send message to person
-								// user who sent message users[i - 1]->getNickName();
-								// 2nd parameter will be the user to send to so you have to search in member variable users to find it.
-							break;
-						}
-						case PONG: {
-							break;
-						}
-						case QUIT: {
-							message.sendMessage(*(users[i - 1]), "ERROR :Closing link: (" + users[i - 1]->getNickName() + "@" + users[i - 1]->getHostName() + ") [Quit: ]\n");
-							this->close_conn = true;
-							break;
-						}
-						case JOIN: {
-							if (users[i - 1]->getRegistered())
-							{
-								std::string name = message.getNthWord(msg, 2);
-								bool		found = false;
-								for (std::vector<Channel*>::iterator it = this->channels.begin(); it != this->channels.end(); it++)
-								{
-									if ((*it)->getChannelName() == name)
-									{
-										(*it)->addUser(users[i - 1]);
-										found = true;
-									}
-								}
-								if (!found)
-								{
-									Channel *channel = new Channel(name);
-									channel->addUser(users[i - 1]);
-									this->channels.push_back(channel);
-								}
-								this->message.sendMessage(*(users[i - 1]), ":" + users[i - 1]->getNickName() + "!" + users[i - 1]->getIdent() + "@" + users[i - 1]->getHostName() + " JOIN :" + name + "\n");
-							}
-							else
-								message.sendReply(ERR_NOTREGISTERED, this->hostname, *(users[i - 1]), "JOIN");
-							break ;
-						}
-						case NICK: {
-							std::string nickname = this->message.getNthWord(msg, 2);
-							if (users[i - 1]->getNickName().empty())
-									users[i - 1]->setNickName(nickname);
-							else if (nickNameExists(nickname))
-								message.sendReply(ERR_NICKNAMEINUSE, this->hostname, *(users[i - 1]), nickname);
-							else
-							{
-								if (nickname.find_first_not_of("0123456789") == std::string::npos)
-									message.sendReply(ERR_ERRONEUSNICKNAME, this->hostname, *(users[i - 1]), nickname);
-								else
-								{
-									if (!users[i - 1]->getRegistered())
-									{
-										users[i - 1]->setNickName(nickname);
-										users[i - 1]->setIdent("~" + users[i - 1]->getNickName().substr(0, 9));
-										message.sendMessage(*(users[i - 1]), ":" + this->hostname + " NOTICE " + nickname + " :*** Ident lookup timed out, using " + users[i - 1]->getIdent() + " instead.\n");
-										message.sendMessage(*(users[i - 1]), ":" + this->hostname +" CAP " + nickname + " ACK :sasl\n");
-									}
-									else
-									{
-										message.sendMessage(*(users[i - 1]), ":" + users[i - 1]->getNickName() + " NICK " + nickname + "\n");
-										users[i - 1]->setNickName(nickname);
-									}
-								}
-							}
-							break ;
-						}
-						case PASS: {
-							break ;
-						}
-						case PLAIN: {
-
-							if (users[i - 1]->getPassword().empty())
-								message.sendMessage(*(users[i - 1]), "AUTHENTICATE +\n");
-							break;
-						}
-						case AUTHENTICATE:
-						{
-							std::stringstream stream(msg);
-							size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
-							if (size == 1)
-							{
-								message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "AUTHENTICATE");
-							}
-							else if (users[i - 1]->getPassword().empty())
-							{
-								users[i - 1]->setPassword(message.getNthWord(msg, 2));
-								users[i - 1]->setRegistered(true);
-								message.sendReply(RPL_WELCOME, this->hostname, *(users[i - 1]));
-								message.sendReply(RPL_YOURHOST, this->hostname, *(users[i - 1]));
-								message.sendReply(RPL_CREATED, this->hostname, *(users[i - 1]));
-							}
-							break ;
-						}
-						case USER: {
-							if (users[i - 1]->getUserName().empty())
-							{
-								std::string nickname = users[i - 1]->getNickName();
-								users[i - 1]->setUserName(this->message.getNthWord(msg, 2));
-								std::string hostname = this->message.getNthWord(msg, 3);
-								if (hostname == "0")
-									message.sendMessage(*(users[i - 1]), ":" + this->hostname + " NOTICE * :*** Could not resolve your hostname: Domain not found; using your IP address ("+ users[i - 1]->getHostName() +") instead.\n");
-								else
-									users[i - 1]->setHostName(hostname);
-								if (nickname.find_first_not_of("0123456789") != std::string::npos) {
-									users[i - 1]->setIdent("~" + users[i - 1]->getNickName().substr(0, 9));
-									message.sendMessage(*(users[i - 1]), ":" + this->hostname + " NOTICE " + nickname + " :*** Could not find your ident, using " + users[i - 1]->getIdent() + " instead.\n");
-									message.sendMessage(*(users[i - 1]), ":" + this->hostname +" CAP " + nickname + " ACK :sasl\n");
-								}
-							}
-							else
-							{
-								std::stringstream stream(msg);
-								size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
-								if (size != 5)
-								{
-									message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "USER");
-									message.sendReply(RPL_USERPARAMS, this->hostname, *(users[i - 1]));
-								}
-								else
-								{
-									message.sendReply(ERR_ALREADYREGISTRED, this->hostname, *(users[i - 1]));
-								}
-							}
-							break ;
-						}
-						case OPER: {
-							std::stringstream stream(msg);
-							size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
-							std::string default_password = "hello";
-							if (size != 3)
-							{
-								message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "USER");
-							}
-							else if (message.getNthWord(msg, 3) != default_password)
-							{
-								message.sendReply(ERR_PASSWDMISMATCH, this->hostname, *(users[i - 1]));
-							}
-							else
-							{
-								message.sendReply(RPL_YOUREOPER, this->hostname, *(users[i - 1]));
-								users[i - 1]->setUserMode("o");
-							}
-							break;
-						}
-						case TIME: {
-							std::stringstream stream(msg);
-							size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
-							if (size == 1)
-							{
-								message.sendReply(RPL_TIME, this->hostname, *(users[i - 1]));
-							}
-							else if (message.getNthWord(msg, 2) != hostname)
-							{
-								message.sendReply(ERR_NOSUCHSERVER, this->hostname, *(users[i - 1]));
-							}
-							break;
-						}
-						case KILL: {
-							std::stringstream stream(msg);
-							size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
-							if (size < 3 && nickNameExists(message.getNthWord(msg, 2)))
-							{
-								message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "USER");
-							}
-							else if (!users[i - 1]->isOperator())
-							{
-								message.sendReply(ERR_NOPRIVILEGES, this->hostname, *(users[i - 1]));
-							}
-							else if (message.getNthWord(msg, 2) == hostname)
-							{
-								message.sendReply(ERR_CANTKILLSERVER, this->hostname, *(users[i - 1]));
-							}
-							else if (!nickNameExists(message.getNthWord(msg, 2)))
-							{
-								message.sendReply(ERR_NOSUCHNICK, this->hostname, *(users[i - 1]), message.getNthWord(msg, 2));
-							}
-							else
-							{
-								std::vector<User*>::iterator it = this->users.begin();
-								size_t pos = 0;
-								while ( it != this->users.end())
-								{
-									if ((*it)->getNickName() == message.getNthWord(msg, 2))
-									{
-										
-										it = users.erase(it);
-										this->reorder_fds = true;
-										close(fds[pos + 1].fd);
-										fds[pos + 1].fd = -1;
-										this->reorderFds();
-										break;
-									}
-									pos++;
-									it++;
-								}
-							}
-							break;
-						}
-						case SQUIT: {
-							std::stringstream stream(msg);
-							size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
-							if (message.getNthWord(msg, 2) == hostname && size < 3)
-							{
-								message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "USER");
-							}
-							else if (!users[i - 1]->isOperator())
-							{
-								message.sendReply(ERR_NOPRIVILEGES, this->hostname, *(users[i - 1]));
-							}
-							else if (message.getNthWord(msg, 2) != hostname)
-							{
-								message.sendReply(ERR_NOSUCHSERVER, this->hostname, *(users[i - 1]));
-							}
-							else
-							{
-								std::vector<User*>::iterator it = this->users.begin();
-								this->close_conn = true;
-								size_t pos = 0;
-								while ( it != this->users.end())
-								{
-									fds[pos + 1].fd = -1;
-									pos++;
-									it++;
-								}
-								fds[0].fd = -1;
-							}
-							break;
-						}
-						case AWAY: {
-							std::stringstream stream(msg);
-							size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
-							if (size == 1)
-							{
-								users[i - 1]->setAwayMsg("");
-								message.sendReply(RPL_UNAWAY, this->hostname, *(users[i - 1]));
-							}
-							else
-							{
-								std::size_t pos = msg.find("AWAY");
-								std::string away_message = msg.substr(pos + 4);
-								users[i - 1]->setAwayMsg(away_message);
-								message.sendReply(RPL_NOWAWAY, this->hostname, *(users[i - 1]));
-							}
-							break;
-						}
-						default:
-						{
-							message.sendReply(ERR_UNKNOWNCOMMAND, this->hostname, *(users[i - 1]), message.getNthWord(msg, 1));
-							break ;
-						}
-					}
+					commandRun(msg, i);
 				}
 				catch (std::exception &exp)
 				{
