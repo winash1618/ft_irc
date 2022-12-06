@@ -56,7 +56,12 @@ public:
 	void		pollInit();
 	void		pollFdInit();
 	void		loopFds();
-	void		commandRun();
+	void		joinCommand(const std::string &msg, int i);
+	void		nickCommand(const std::string &msg, int i);
+	void		userCommand(const std::string &msg, int i);
+	void		killCommand(const std::string &msg, int i);
+	void		privMsgCommand(const std::string &msg, int i);
+	void		commandRun(const std::string &msg, int i);
 	void		reorderFds();
 	bool		getServerRunning() const;
 	bool		nickNameExists(std::string nickname);

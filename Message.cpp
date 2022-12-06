@@ -184,6 +184,5 @@ const std::string Message::getNthWord(std::string s, std::size_t n)
 
 void	Message::sendMessage(User &user, const std::string &msg)
 {
-	std::cout << msg << std::endl;
 	send(user.getSocket(), msg.c_str(), msg.length(), 0);
 }
