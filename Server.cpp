@@ -145,7 +145,11 @@ void	Server::privMsgCommand(const std::string &msg, int i)
 				if ((*it)->getNickName() == name)
 				{
 					if ((*it)->getIsAway() == true)
-						message.sendReply(RPL_AWAY, this->hostname, *(users[i - 1]), name);
+					{
+						std::string away;
+						away = (*it)->getNickName() + " " + (*it)->getAwayMsg();
+						message.sendReply(RPL_AWAY, this->hostname, *(users[i - 1]), away);
+					}
 				}
 			}
 		}
