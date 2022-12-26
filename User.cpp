@@ -2,11 +2,10 @@
 
 
 User::User(): registered(false), timeout(20000) {
-
 }
 
 User::~User() {
-	
+	delete this;
 }
 
 const std::string User::getNickName() const
@@ -112,4 +111,14 @@ const std::string	User::getAwayMsg() const
 void	User::setAwayMsg(std::string away_msg)
 {
 	this->away_msg = away_msg;
+}
+
+bool	User::getIsAway() const
+{
+	return(this->is_away);
+}
+
+void	User::setIsAway(bool away)
+{
+	this->is_away = away;
 }
