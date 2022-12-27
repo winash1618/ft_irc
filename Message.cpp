@@ -3,39 +3,6 @@
 
 const std::string	Message::msgRecv(int sock, bool &close_conn, bool &chk)
 {
-	// std::string msg; // string to store received data
-	// bool done = false; // flag variable to control loop
-	// while (!done) {
-	// 	char buf[512];
-	// 	int bytes_received = recv(sock, buf, 512, 0);
-	// 	if (bytes_received == 0)
-	// 	{
-	// 		if (errno != EWOULDBLOCK)
-	// 		{
-	// 			close_conn = true;
-	// 			throw Message::MessageError("receive() failed");
-	// 		}
-	// 		chk = true;
-	// 		return "";
-	// 	}
-	// 	// append received data to end of msg
-	// 	msg.append(buf, bytes_received);
-	// 	std::cout << "msg: " << msg << std::endl;
-	// 	// check for EOT character in the received data
-	// 	for (int i = 0; i < bytes_received; i++)
-	// 	{
-	// 		if (buf[i] == EOF) 
-	// 		{
-	// 			// EOT character was received, set flag to terminate loop
-	// 			chk = true;
-	// 			done = true;
-	// 			break;
-	// 		}
-	// 	}
-	// }
-	// // close socket and clean up
-	// return msg;
-	
 	bool flag = false;// string to store received data
 	std::string msg2;
 	char buffer[512];
@@ -76,28 +43,6 @@ const std::string	Message::msgRecv(int sock, bool &close_conn, bool &chk)
 		}
 	} while ((int)buffer[rc - 1] != 10 && !flag);
 	return msg2;
-	// char buffer[512];
-	// int rc = recv(sock, buffer, sizeof(buffer), 0);
-	// std::cout << "rc: " << rc << std::endl;
-	// std::cout << "buffer[rc - 1]: " << (int)buffer[rc - 1] << std::endl;
-	// std::cout << "buffer[rc]: " << (int)buffer[rc] << std::endl;
-	// if (rc < 0)
-	// {
-	// 	if (errno != EWOULDBLOCK)
-	// 	{
-	// 		close_conn = true;
-	// 		throw Message::MessageError("receive() failed");
-	// 	}
-	// 	chk = true;
-	// 	return "";
-	// }
-	// if (rc == 0)
-	// {
-	// 	close_conn = true;
-	// 	throw Message::MessageError("Connection closed\n");
-	// }
-	// buffer[rc] = '\0';
-	// return buffer;
 }
 
 void	Message::setMessage(const std::string &msg)
