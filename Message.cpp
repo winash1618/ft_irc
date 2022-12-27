@@ -70,7 +70,7 @@ void	Message::sendReply(int numeric, const std::string& from, User &user, const 
 		}
 		case RPL_AWAY:
 		{
-			msg += user.getNickName() + ":" + user.getAwayMsg() + "\n";
+			msg += cmd + ":" + user.getAwayMsg() + "\n";
 			break ;
 		}
 		case RPL_NOWAWAY:
@@ -173,7 +173,7 @@ void	Message::sendReply(int numeric, const std::string& from, User &user, const 
 		}
 		case ERR_NOSUCHNICK:
 		{
-			msg += cmd + " :You cant kill a server!\n";
+			msg += cmd + " :No such nick!\n";
 			break ;
 		}
 		case ERR_PASSWDMISMATCH:
@@ -184,6 +184,11 @@ void	Message::sendReply(int numeric, const std::string& from, User &user, const 
 		case ERR_NOSUCHSERVER:
 		{
 			msg += user.getHostName() +" :No such server\n";
+			break ;
+		}
+		case ERR_NOTEXTTOSEND:
+		{
+			msg += " :No text to send\n";
 			break ;
 		}
 		default:

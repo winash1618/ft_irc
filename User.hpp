@@ -20,6 +20,7 @@ private:
 	std::string				password;
 	int						socket;
 	int						timeout;
+	bool					is_away;
 public:
 	User();
 	~User();
@@ -44,6 +45,8 @@ public:
 	void				setUserMode(std::string mode);
 	const std::string	getAwayMsg() const;
 	void				setAwayMsg(std::string away_msg);
+	bool				getIsAway() const;
+	void				setIsAway(bool away);
 };
 
 #endif

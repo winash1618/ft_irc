@@ -126,10 +126,34 @@ void	Server::privMsgCommand(const std::string &msg, int i)
 			}
 		}
 	}
-	// else
-		// send message to person
-		// user who sent message users[i - 1]->getNickName();
-		// 2nd parameter will be the user to send to so you have to search in member variable users to find it.
+	else
+	{
+		std::stringstream stream(msg);
+		size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
+		if (!nickNameExists(message.getNthWord(msg, 2)))
+		{
+			message.sendReply(ERR_NOSUCHNICK, this->hostname, *(users[i - 1]), message.getNthWord(msg, 2));
+		}
+		else if (size < 3 && nickNameExists(message.getNthWord(msg, 2)))
+		{
+			message.sendReply(ERR_NOTEXTTOSEND, this->hostname, *(users[i - 1]), "USER");
+		}
+		else
+		{
+			for (std::vector<User*>::iterator it = this->users.begin(); it != this->users.end(); it++)
+			{
+				if ((*it)->getNickName() == name)
+				{
+					if ((*it)->getIsAway() == true)
+					{
+						std::string away;
+						away = (*it)->getNickName() + " " + (*it)->getAwayMsg();
+						message.sendReply(RPL_AWAY, this->hostname, *(users[i - 1]), away);
+					}
+				}
+			}
+		}
+	}
 }
 
 void	Server::joinCommand(const std::string &msg, int i)
@@ -388,6 +412,7 @@ void	Server::commandRun(const std::string &msg, int i)
 			if (size == 1)
 			{
 				users[i - 1]->setAwayMsg("");
+				users[i - 1]->setIsAway(false);
 				message.sendReply(RPL_UNAWAY, this->hostname, *(users[i - 1]));
 			}
 			else
@@ -395,6 +420,7 @@ void	Server::commandRun(const std::string &msg, int i)
 				std::size_t pos = msg.find("AWAY");
 				std::string away_message = msg.substr(pos + 4);
 				users[i - 1]->setAwayMsg(away_message);
+				users[i - 1]->setIsAway(true);
 				message.sendReply(RPL_NOWAWAY, this->hostname, *(users[i - 1]));
 			}
 			break;

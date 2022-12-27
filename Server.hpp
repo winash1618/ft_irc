@@ -29,11 +29,11 @@ class User;
 
 class Server {
 private:
-	int						sock;
-	int						port;
-	std::string				password;	
-	std::string				hostname;
-  	struct sockaddr_in6		addr;
+	int						sock; // socket descriptor
+	int						port; // port number
+	std::string				password; // server password
+	std::string				hostname; // server hostname
+  	struct sockaddr_in6		addr; // server address
 	struct sockaddr_in		client;
 	std::vector<User*>		users;
 	std::vector<Channel*>	channels;
