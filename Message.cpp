@@ -9,11 +9,7 @@ const std::string	Message::msgRecv(int sock, bool &close_conn, bool &chk)
 	static int rc;
 	do
 	{
-		std::cout << "msg1: " << this->msg << std::endl;
 		rc = recv(sock, buffer, sizeof(buffer), 0);
-		std::cout << "rc: " << rc << std::endl;
-		std::cout << "buffer[rc - 1]: " << (int)buffer[rc - 1] << std::endl;
-		std::cout << "buffer[rc]: " << (int)buffer[rc] << std::endl;
 		if (rc == -1)
 		{
 			if (errno != EWOULDBLOCK)
@@ -39,7 +35,6 @@ const std::string	Message::msgRecv(int sock, bool &close_conn, bool &chk)
 				msg = "";
 				flag = true;
 			}
-			std::cout << "msg: " << this->msg << std::endl;
 		}
 	} while ((int)buffer[rc - 1] != 10 && !flag);
 	return msg2;
@@ -55,7 +50,7 @@ void	Message::sendReply(int numeric, const std::string& from, User &user, const 
 	std::string msg = ":" + from + " ";
 	std::stringstream ss;
 	ss << numeric;
-	msg += ss.str() + " " + user.getNickName() + " ";
+	msg += ss.str() + " " + (numeric == 464 ? "*" : user.getNickName()) + " ";
 	switch (numeric)
 	{
 		case RPL_LOGGEDIN:

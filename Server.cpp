@@ -311,6 +311,7 @@ void	Server::sQuitCommand(const std::string &msg, int i)
 void	Server::commandRun(const std::string &msg, int i)
 {
 	int	cmd = this->message.parseMessage(msg);
+	std::cout << msg << std::endl;
 	switch (cmd)
 	{
 		case MSG:
@@ -335,11 +336,31 @@ void	Server::commandRun(const std::string &msg, int i)
 			break ;
 		}
 		case PASS: {
+			std::stringstream stream(msg);
+			size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
+			if (size == 1)
+			{
+				message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "PASS");
+				message.sendReply(RPL_USERPARAMS, this->hostname, *(users[i - 1]));
+			}
+			else if (message.getNthWord(msg, 2) != this->password)
+			{
+				message.sendReply(ERR_PASSWDMISMATCH, this->hostname, *(users[i - 1]));
+				this->close_conn = true;
+			}
+			else if (users[i - 1]->getPassword().empty())
+			{
+				users[i - 1]->setPassword(this->password);
+			}
+			else
+			{
+				message.sendReply(ERR_ALREADYREGISTRED, this->hostname, *(users[i - 1]));
+			}
 			break ;
 		}
 		case PLAIN: {
 
-			if (users[i - 1]->getPassword().empty())
+			if (!users[i - 1]->getRegistered())
 				message.sendMessage(*(users[i - 1]), "AUTHENTICATE +\n");
 			break;
 		}
@@ -351,9 +372,9 @@ void	Server::commandRun(const std::string &msg, int i)
 			{
 				message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "AUTHENTICATE");
 			}
-			else if (users[i - 1]->getPassword().empty())
+			else if (!users[i - 1]->getRegistered())
 			{
-				users[i - 1]->setPassword(message.getNthWord(msg, 2));
+				std::cout << "test123" << std::endl;
 				users[i - 1]->setRegistered(true);
 				message.sendReply(RPL_WELCOME, this->hostname, *(users[i - 1]));
 				message.sendReply(RPL_YOURHOST, this->hostname, *(users[i - 1]));
@@ -366,11 +387,9 @@ void	Server::commandRun(const std::string &msg, int i)
 				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "/away");
 				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "/nick <nickname>");
 				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "/squit");
-				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "The commands that you have available");
-				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "The commands that you have available");
-				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "The commands that you have available");
-				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "The commands that you have available");
-				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "The commands that you have available");
+				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "/away <message>");
+				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "/kill <nickname> <comment>");
+				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "/time [<server>]");
 				message.sendReply(RPL_ENDOFMOTD, this->hostname, *(users[i - 1]));
 			}
 			break ;
@@ -506,16 +525,22 @@ void	Server::loopFds()
 		{
 			printf("  Descriptor %d is readable\n", fds[i].fd);
 			this->close_conn = false;
-			int ii = 0;
 			do
 			{
 				try {
-					std::cout << ii << std::endl;
-					ii++;
 					bool chk = false;
 					std::string msg = this->message.msgRecv(fds[i].fd, this->close_conn, chk);
 					if (chk)
 						break ;
+					if (!users[i - 1]->getIsPass() && message.getNthWord(msg, 1) != "PASS")
+					{
+						message.sendReply(ERR_PASSWDMISMATCH, this->hostname, *(users[i - 1]));
+						this->close_conn = true;
+					}
+					else
+					{
+						users[i - 1]->setIsPass(true);
+					}
 					commandRun(msg, i);
 				}
 				catch (std::exception &exp)
