@@ -18,6 +18,7 @@
 #include <exception>
 #include <vector>
 #include <algorithm>
+#include <iterator>
 #include "Message.hpp"
 #include "User.hpp"
 #include "Numerics.hpp"

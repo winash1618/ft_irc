@@ -1,26 +1,53 @@
 #include "Message.hpp"
+#include <cstring>
 
 const std::string	Message::msgRecv(int sock, bool &close_conn, bool &chk)
 {
+	bool flag = false;// string to store received data
+	std::string msg2;
 	char buffer[512];
-	int rc = recv(sock, buffer, sizeof(buffer), 0);
-	if (rc < 0)
+	static int rc;
+	do
 	{
-		if (errno != EWOULDBLOCK)
+		std::cout << "msg1: " << this->msg << std::endl;
+		rc = recv(sock, buffer, sizeof(buffer), 0);
+		std::cout << "rc: " << rc << std::endl;
+		std::cout << "buffer[rc - 1]: " << (int)buffer[rc - 1] << std::endl;
+		std::cout << "buffer[rc]: " << (int)buffer[rc] << std::endl;
+		if (rc == -1)
+		{
+			if (errno != EWOULDBLOCK)
+			{
+				close_conn = true;
+				throw Message::MessageError("receive() failed");
+			}
+			chk = true;
+			return "";
+		}
+		if (rc == 0)
 		{
 			close_conn = true;
-			throw Message::MessageError("receive() failed");
+			throw Message::MessageError("Connection closed\n");
 		}
-		chk = true;
-		return "";
-	}
-	if (rc == 0)
-	{
-		close_conn = true;
-		throw Message::MessageError("Connection closed\n");
-	}
-	buffer[rc] = '\0';
-	return buffer;
+		if (rc > 0)
+		{
+			buffer[rc] = '\0';
+			this->msg += buffer;
+			if ((int)buffer[rc - 1] == 10)
+			{
+				msg2 = msg;
+				msg = "";
+				flag = true;
+			}
+			std::cout << "msg: " << this->msg << std::endl;
+		}
+	} while ((int)buffer[rc - 1] != 10 && !flag);
+	return msg2;
+}
+
+void	Message::setMessage(const std::string &msg)
+{
+	this->msg = msg;
 }
 
 void	Message::sendReply(int numeric, const std::string& from, User &user, const std::string &cmd)
@@ -132,6 +159,7 @@ void	Message::sendReply(int numeric, const std::string& from, User &user, const 
 		case ERR_CANNOTSENDTOCHAN:
 		{
 			msg += cmd + " :Cannot send to channel\n";
+			break ;
 		}
 		case ERR_NOPRIVILEGES:
 		{
