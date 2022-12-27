@@ -126,6 +126,7 @@ void	Server::loopFds()
 				users[i - 1]->setTimeout(timeout - 1000);
 			else if (timeout == 0 && !users[i - 1]->getRegistered())
 			{
+				message.setMessage("");
 				message.sendMessage(*(users[i - 1]), "ERROR :Closing link: (" + users[i - 1]->getNickName() + "@" + users[i - 1]->getHostName() + ") [Registration timeout]\n");
 				close(fds[i].fd);
 				users.erase(users.begin() + (i - 1));
@@ -172,9 +173,12 @@ void	Server::loopFds()
 		{
 			printf("  Descriptor %d is readable\n", fds[i].fd);
 			this->close_conn = false;
+			int ii = 0;
 			do
 			{
 				try {
+					std::cout << ii << std::endl;
+					ii++;
 					bool chk = false;
 					std::string msg = this->message.msgRecv(fds[i].fd, this->close_conn, chk);
 					if (chk)
@@ -415,16 +419,7 @@ void	Server::loopFds()
 							}
 							else
 							{
-								std::vector<User*>::iterator it = this->users.begin();
-								this->close_conn = true;
-								size_t pos = 0;
-								while ( it != this->users.end())
-								{
-									fds[pos + 1].fd = -1;
-									pos++;
-									it++;
-								}
-								fds[0].fd = -1;
+								close(this->sock);
 							}
 							break;
 						}
