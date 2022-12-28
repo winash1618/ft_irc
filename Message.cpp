@@ -226,6 +226,8 @@ int	Message::parseMessage(std::string msg)
 	}
 	else if (command == "PRIVMSG")
 		return (MSG);
+	else if (command == "NOTICE")
+		return (NOTICE);
 	else if (command == "PONG")
 		return (PONG);
 	else if (command == "QUIT")

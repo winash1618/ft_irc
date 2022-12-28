@@ -156,6 +156,21 @@ void	Server::privMsgCommand(const std::string &msg, int i)
 	}
 }
 
+void	Server::noticeCommand(const std::string &msg, int i)
+{
+	std::string	name = this->message.getNthWord(msg, 2);
+	std::stringstream stream(msg);
+	size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
+	if (!nickNameExists(message.getNthWord(msg, 2)))
+	{
+		message.sendReply(ERR_NOSUCHNICK, this->hostname, *(users[i - 1]), message.getNthWord(msg, 2));
+	}
+	else if (size < 3 && nickNameExists(message.getNthWord(msg, 2)))
+	{
+		message.sendReply(ERR_NOTEXTTOSEND, this->hostname, *(users[i - 1]), "USER");
+	}
+}
+
 void	Server::joinCommand(const std::string &msg, int i)
 {
 	if (users[i - 1]->getRegistered())
@@ -202,6 +217,10 @@ void	Server::killCommand(const std::string &msg, int i)
 	{
 		message.sendReply(ERR_NOSUCHNICK, this->hostname, *(users[i - 1]), message.getNthWord(msg, 2));
 	}
+	else if (message.getNthWord(msg, 2) == users[i - 1]->getNickName())
+	{
+		this->close_conn = true;
+	}
 	else
 	{
 		std::vector<User*>::iterator it = this->users.begin();
@@ -215,7 +234,7 @@ void	Server::killCommand(const std::string &msg, int i)
 				this->reorder_fds = true;
 				close(fds[pos + 1].fd);
 				fds[pos + 1].fd = -1;
-				this->reorderFds();
+				// this->reorderFds();
 				break;
 			}
 			pos++;
@@ -261,6 +280,10 @@ void	Server::nickCommand(const std::string &msg, int i)
 	std::string nickname = this->message.getNthWord(msg, 2);
 	if (users[i - 1]->getNickName().empty())
 			users[i - 1]->setNickName(nickname);
+	else if (users[i - 1]->getNickName() == nickname)
+	{
+		return ;
+	}
 	else if (nickNameExists(nickname))
 		message.sendReply(ERR_NICKNAMEINUSE, this->hostname, *(users[i - 1]), nickname);
 	else
@@ -317,6 +340,11 @@ void	Server::commandRun(const std::string &msg, int i)
 		case MSG:
 		{
 			privMsgCommand(msg, i);
+			break;
+		}
+		case NOTICE:
+		{
+			noticeCommand(msg, i);
 			break;
 		}
 		case PONG: {
@@ -582,7 +610,7 @@ void	Server::reorderFds()
 			for(int j = i; j < this->nfds; j++)
 				this->fds[j].fd = this->fds[j + 1].fd;
 			i--;
-			nfds--;
+			this->nfds--;
 		}
 	}
 }

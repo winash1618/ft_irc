@@ -62,6 +62,7 @@ public:
 	void		userCommand(const std::string &msg, int i);
 	void		killCommand(const std::string &msg, int i);
 	void		privMsgCommand(const std::string &msg, int i);
+	void		noticeCommand(const std::string &msg, int i);
 	void		sQuitCommand(const std::string &msg, int i);
 	void		commandRun(const std::string &msg, int i);
 	void		reorderFds();
