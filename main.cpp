@@ -9,6 +9,14 @@ int main (int argc, char *argv[])
 {
 	if (argc == 3)
 	{
+		for (size_t i = 0; i < strlen(argv[1]); i++)
+		{
+			if (!isdigit(argv[1][i]))
+			{
+				std::cerr << "Port must be a number" << std::endl;
+				return (0);
+			}
+		}
 		Server server(argv[1], argv[2]);
 			try {
 				server.socketCreate();

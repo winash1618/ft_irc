@@ -3,6 +3,8 @@
 
 Server::Server(std::string port, std::string password):	password(password), nfds(1), user_sd(-1), server_running(true) {
 	std::istringstream(port) >> this->port;
+	if (this->port < 1024 || this->port > 65535)
+		throw Server::ServerError("Invalid port number");
 	char hostbuffer[256] = {0};
 	gethostname(hostbuffer, sizeof(hostbuffer));
 	this->hostname = hostbuffer;
