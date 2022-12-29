@@ -16,7 +16,8 @@ enum Cmd
 	KILL,
 	SQUIT,
 	AWAY,
-	TIME
+	TIME,
+	NOTICE,
 };
 
 #define RPL_LOGGEDIN 900

@@ -20,6 +20,7 @@ private:
 	std::string				password;
 	int						socket;
 	int						timeout;
+	bool					is_pass;
 	bool					is_away;
 public:
 	User();
@@ -39,6 +40,8 @@ public:
 	void				setIdent(const std::string ident);
 	bool				getRegistered() const;
 	void				setRegistered(bool registered);
+	bool				getIsPass() const;
+	void				setIsPass(bool is_pass);
 	int					getTimeout() const;
 	void				setTimeout(int timeout);
 	bool				isOperator() const;

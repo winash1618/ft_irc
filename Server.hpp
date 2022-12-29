@@ -18,6 +18,7 @@
 #include <exception>
 #include <vector>
 #include <algorithm>
+#include <iterator>
 #include "Message.hpp"
 #include "User.hpp"
 #include "Numerics.hpp"
@@ -61,6 +62,7 @@ public:
 	void		userCommand(const std::string &msg, int i);
 	void		killCommand(const std::string &msg, int i);
 	void		privMsgCommand(const std::string &msg, int i);
+	void		noticeCommand(const std::string &msg, int i);
 	void		sQuitCommand(const std::string &msg, int i);
 	void		commandRun(const std::string &msg, int i);
 	void		reorderFds();

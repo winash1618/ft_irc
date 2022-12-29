@@ -1,26 +1,48 @@
 #include "Message.hpp"
+#include <cstring>
 
 const std::string	Message::msgRecv(int sock, bool &close_conn, bool &chk)
 {
+	bool flag = false;// string to store received data
+	std::string msg2;
 	char buffer[512];
-	int rc = recv(sock, buffer, sizeof(buffer), 0);
-	if (rc < 0)
+	static int rc;
+	do
 	{
-		if (errno != EWOULDBLOCK)
+		rc = recv(sock, buffer, sizeof(buffer), 0);
+		if (rc == -1)
+		{
+			if (errno != EWOULDBLOCK)
+			{
+				close_conn = true;
+				throw Message::MessageError("receive() failed");
+			}
+			chk = true;
+			return "";
+		}
+		if (rc == 0)
 		{
 			close_conn = true;
-			throw Message::MessageError("receive() failed");
+			throw Message::MessageError("Connection closed\n");
 		}
-		chk = true;
-		return "";
-	}
-	if (rc == 0)
-	{
-		close_conn = true;
-		throw Message::MessageError("Connection closed\n");
-	}
-	buffer[rc] = '\0';
-	return buffer;
+		if (rc > 0)
+		{
+			buffer[rc] = '\0';
+			this->msg += buffer;
+			if ((int)buffer[rc - 1] == 10)
+			{
+				msg2 = msg;
+				msg = "";
+				flag = true;
+			}
+		}
+	} while ((int)buffer[rc - 1] != 10 && !flag);
+	return msg2;
+}
+
+void	Message::setMessage(const std::string &msg)
+{
+	this->msg = msg;
 }
 
 void	Message::sendReply(int numeric, const std::string& from, User &user, const std::string &cmd)
@@ -28,7 +50,7 @@ void	Message::sendReply(int numeric, const std::string& from, User &user, const 
 	std::string msg = ":" + from + " ";
 	std::stringstream ss;
 	ss << numeric;
-	msg += ss.str() + " " + user.getNickName() + " ";
+	msg += ss.str() + " " + (numeric == 464 ? "*" : user.getNickName()) + " ";
 	switch (numeric)
 	{
 		case RPL_LOGGEDIN:
@@ -96,7 +118,7 @@ void	Message::sendReply(int numeric, const std::string& from, User &user, const 
 			time_t now = time(0);
 			char* dt = ctime(&now);
 			std::string str(dt);
-			msg += user.getHostName() + " " + str + "\n";
+			msg += from + " " + str + "\n";
 			break ;
 		}
 		case ERR_NEEDMOREPARAMS:
@@ -132,6 +154,7 @@ void	Message::sendReply(int numeric, const std::string& from, User &user, const 
 		case ERR_CANNOTSENDTOCHAN:
 		{
 			msg += cmd + " :Cannot send to channel\n";
+			break ;
 		}
 		case ERR_NOPRIVILEGES:
 		{
@@ -155,7 +178,7 @@ void	Message::sendReply(int numeric, const std::string& from, User &user, const 
 		}
 		case ERR_NOSUCHSERVER:
 		{
-			msg += user.getHostName() +" :No such server\n";
+			msg += from +" :No such server\n";
 			break ;
 		}
 		case ERR_NOTEXTTOSEND:
@@ -203,6 +226,8 @@ int	Message::parseMessage(std::string msg)
 	}
 	else if (command == "PRIVMSG")
 		return (MSG);
+	else if (command == "NOTICE")
+		return (NOTICE);
 	else if (command == "PONG")
 		return (PONG);
 	else if (command == "QUIT")
