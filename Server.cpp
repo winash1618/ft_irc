@@ -136,7 +136,7 @@ void	Server::privMsgCommand(const std::string &msg, int i)
 		}
 		else if (size < 3 && nickNameExists(message.getNthWord(msg, 2)))
 		{
-			message.sendReply(ERR_NOTEXTTOSEND, this->hostname, *(users[i - 1]), "USER");
+			message.sendReply(ERR_NOTEXTTOSEND, this->hostname, *(users[i - 1]));
 		}
 		else
 		{
@@ -167,7 +167,7 @@ void	Server::noticeCommand(const std::string &msg, int i)
 	}
 	else if (size < 3 && nickNameExists(message.getNthWord(msg, 2)))
 	{
-		message.sendReply(ERR_NOTEXTTOSEND, this->hostname, *(users[i - 1]), "USER");
+		message.sendReply(ERR_NOTEXTTOSEND, this->hostname, *(users[i - 1]));
 	}
 }
 
@@ -201,13 +201,13 @@ void	Server::killCommand(const std::string &msg, int i)
 {
 	std::stringstream stream(msg);
 	size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
-	if (size < 3 && nickNameExists(message.getNthWord(msg, 2)))
-	{
-		message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "USER");
-	}
-	else if (!users[i - 1]->isOperator())
+	if (!users[i - 1]->isOperator())
 	{
 		message.sendReply(ERR_NOPRIVILEGES, this->hostname, *(users[i - 1]));
+	}
+	else if (size < 3)
+	{
+		message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "KILL");
 	}
 	else if (message.getNthWord(msg, 2) == hostname)
 	{
@@ -234,7 +234,6 @@ void	Server::killCommand(const std::string &msg, int i)
 				this->reorder_fds = true;
 				close(fds[pos + 1].fd);
 				fds[pos + 1].fd = -1;
-				// this->reorderFds();
 				break;
 			}
 			pos++;
@@ -315,7 +314,7 @@ void	Server::sQuitCommand(const std::string &msg, int i)
 	size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
 	if (message.getNthWord(msg, 2) == hostname && size < 3)
 	{
-		message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "USER");
+		message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "SQUIT");
 	}
 	else if (!users[i - 1]->isOperator())
 	{
@@ -414,7 +413,7 @@ void	Server::commandRun(const std::string &msg, int i)
 				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "/oper <user> <passowrd>");
 				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "/away");
 				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "/nick <nickname>");
-				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "/squit");
+				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "/squit <server> <comment>");
 				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "/away <message>");
 				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "/kill <nickname> <comment>");
 				message.sendReply(RPL_MOTD, this->hostname, *(users[i - 1]), "/time [<server>]");
@@ -432,7 +431,7 @@ void	Server::commandRun(const std::string &msg, int i)
 			std::string default_password = "hello";
 			if (size != 3)
 			{
-				message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "USER");
+				message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "OPER");
 			}
 			else if (message.getNthWord(msg, 3) != default_password)
 			{
@@ -479,10 +478,6 @@ void	Server::commandRun(const std::string &msg, int i)
 			if (size == 1)
 			{
 				message.sendReply(RPL_TIME, this->hostname, *(users[i - 1]));
-			}
-			else if (message.getNthWord(msg, 2) != hostname)
-			{
-				message.sendReply(ERR_NOSUCHSERVER, this->hostname, *(users[i - 1]));
 			}
 			break;
 		}

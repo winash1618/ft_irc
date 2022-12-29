@@ -118,7 +118,7 @@ void	Message::sendReply(int numeric, const std::string& from, User &user, const 
 			time_t now = time(0);
 			char* dt = ctime(&now);
 			std::string str(dt);
-			msg += user.getHostName() + " " + str + "\n";
+			msg += from + " " + str + "\n";
 			break ;
 		}
 		case ERR_NEEDMOREPARAMS:
@@ -178,7 +178,7 @@ void	Message::sendReply(int numeric, const std::string& from, User &user, const 
 		}
 		case ERR_NOSUCHSERVER:
 		{
-			msg += user.getHostName() +" :No such server\n";
+			msg += from +" :No such server\n";
 			break ;
 		}
 		case ERR_NOTEXTTOSEND:
