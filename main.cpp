@@ -17,8 +17,8 @@ int main (int argc, char *argv[])
 				return (0);
 			}
 		}
-		Server server(argv[1], argv[2]);
 			try {
+				Server server(argv[1], argv[2]);
 				server.socketCreate();
 				server.socketOptionsInit();
 				server.makeNonBlocking();
@@ -26,22 +26,22 @@ int main (int argc, char *argv[])
 				server.socketListen();
 				server.printHostname();
 				server.pollFdInit();
+				do
+				{
+					server.pollInit();
+					server.getNumberOfFds();
+					server.loopFds();
+					if (server.getReorderFds())
+					{
+					server.reorderFds();
+					}
+
+				} while (server.getServerRunning() == true);
 			}
 			catch (std::exception &exp)
 			{
 				std::cerr << exp.what() << std::endl;
 			}
-		do
-		{
-			server.pollInit();
-			server.getNumberOfFds();
-			server.loopFds();
-			if (server.getReorderFds())
-			{
-			server.reorderFds();
-			}
-
-		} while (server.getServerRunning() == true);
 		return (0);
 	}
 	else

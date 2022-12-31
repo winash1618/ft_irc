@@ -5,7 +5,6 @@ User::User(): registered(false), timeout(20000), is_pass(false), is_away(false) 
 }
 
 User::~User() {
-	delete this;
 }
 
 const std::string User::getNickName() const

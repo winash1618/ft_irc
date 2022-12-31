@@ -1,7 +1,7 @@
 #include "Server.hpp"
 
 
-Server::Server(std::string port, std::string password):	password(password), nfds(1), user_sd(-1), server_running(true) {
+Server::Server(std::string port, std::string password):	password(password), nfds(1), user_sd(-1), server_running(true), reorder_fds(false) {
 	std::istringstream(port) >> this->port;
 	if (this->port < 1024 || this->port > 65535)
 		throw Server::ServerError("Invalid port number");
@@ -12,6 +12,14 @@ Server::Server(std::string port, std::string password):	password(password), nfds
 
 Server::~Server()
 {
+	for (size_t i = 0; i < this->users.size(); i++)
+	{
+		delete this->users[i];
+	}
+	for (size_t i = 0; i < this->channels.size(); i++)
+	{
+		delete this->channels[i];
+	}
 	for (int i = 0; i < nfds; i++)
 	{
 		if(this->fds[i].fd >= 0)
@@ -115,6 +123,7 @@ bool	Server::nickNameExists(std::string nickname) {
 void	Server::privMsgCommand(const std::string &msg, int i)
 {
 	std::string	name = this->message.getNthWord(msg, 2);
+	bool found = false;
 	if (name[0] == '#')
 	{
 		for (std::vector<Channel*>::iterator it = this->channels.begin(); it != this->channels.end(); it++)
@@ -125,8 +134,11 @@ void	Server::privMsgCommand(const std::string &msg, int i)
 					(*it)->sendMessage(users[i - 1]->getNickName(), msg);
 				else
 					this->message.sendReply(ERR_CANNOTSENDTOCHAN, this->hostname, *(users[i - 1]), name);
+				found = true;
 			}
 		}
+		if (!found)
+			this->message.sendReply(ERR_NOSUCHCHANNEL, this->hostname, *(users[i - 1]), name);
 	}
 	else
 	{
@@ -231,8 +243,9 @@ void	Server::killCommand(const std::string &msg, int i)
 		{
 			if ((*it)->getNickName() == message.getNthWord(msg, 2))
 			{
-				
-				it = users.erase(it);
+				User *user = *it;
+				users.erase(it);
+				delete user;
 				this->reorder_fds = true;
 				close(fds[pos + 1].fd);
 				fds[pos + 1].fd = -1;
@@ -308,7 +321,6 @@ void	Server::nickCommand(const std::string &msg, int i)
 		}
 	}
 }
-
 
 void	Server::sQuitCommand(const std::string &msg, int i)
 {
@@ -506,7 +518,9 @@ void	Server::loopFds()
 				message.setMessage("");
 				message.sendMessage(*(users[i - 1]), "ERROR :Closing link: (" + users[i - 1]->getNickName() + "@" + users[i - 1]->getHostName() + ") [Registration timeout]\n");
 				close(fds[i].fd);
+				User *tmp = *(users.begin() + (i - 1));
 				users.erase(users.begin() + (i - 1));
+				delete tmp;
 				fds[i].fd = -1;
 				reorder_fds = true;
 				break ;
@@ -579,7 +593,11 @@ void	Server::loopFds()
 			{
 				close(fds[i].fd);
 				if (i > 0)
+				{
+					User *tmp = *(users.begin() + (i - 1));
 					users.erase(users.begin() + (i - 1));
+					delete tmp;
+				}
 				fds[i].fd = -1;
 				reorder_fds = true;
 			}

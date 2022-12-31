@@ -186,6 +186,11 @@ void	Message::sendReply(int numeric, const std::string& from, User &user, const 
 			msg += " :No text to send\n";
 			break ;
 		}
+		case ERR_NOSUCHCHANNEL:
+		{
+			msg += cmd + " :No such channel\n";
+			break ;
+		}
 		default:
 		{
 			break ;
