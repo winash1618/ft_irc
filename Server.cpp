@@ -347,7 +347,6 @@ void	Server::sQuitCommand(const std::string &msg, int i)
 void	Server::commandRun(const std::string &msg, int i)
 {
 	int	cmd = this->message.parseMessage(msg);
-	std::cout << msg << std::endl;
 	switch (cmd)
 	{
 		case MSG:
@@ -415,7 +414,6 @@ void	Server::commandRun(const std::string &msg, int i)
 			}
 			else if (!users[i - 1]->getRegistered())
 			{
-				std::cout << "test123" << std::endl;
 				users[i - 1]->setRegistered(true);
 				message.sendReply(RPL_WELCOME, this->hostname, *(users[i - 1]));
 				message.sendReply(RPL_YOURHOST, this->hostname, *(users[i - 1]));
@@ -531,13 +529,13 @@ void	Server::loopFds()
 
 		if(this->fds[i].revents != POLLIN && this->fds[i].revents != 17)
 		{
-			printf("  Error! revents = %d\n", this->fds[i].revents);
+			std::cout << "  Error! revents = " << this->fds[i].revents << std::endl;
 			this->server_running = false;
 			break;
 		}
 		if (this->fds[i].fd == this->sock)
 		{
-			printf("  Listening socket is readable\n");
+			std::cout << "  Listening socket is readable" << std::endl;
 			do
 			{
 				try {
@@ -549,7 +547,7 @@ void	Server::loopFds()
 					std::cerr << exp.what() << std::endl;
 					break ;
 				}
-				printf("  New incoming connection - %d\n", this->user_sd);
+				std::cout << "  New incoming connection - " << this->user_sd << std::endl;
 				this->fds[this->nfds].fd = this->user_sd;
 				this->fds[this->nfds].events = POLLIN;
 				User *user = new User();
@@ -562,7 +560,6 @@ void	Server::loopFds()
       	}
 		else
 		{
-			printf("  Descriptor %d is readable\n", fds[i].fd);
 			this->close_conn = false;
 			do
 			{
@@ -596,6 +593,7 @@ void	Server::loopFds()
 				{
 					User *tmp = *(users.begin() + (i - 1));
 					users.erase(users.begin() + (i - 1));
+					current_size--;
 					delete tmp;
 				}
 				fds[i].fd = -1;

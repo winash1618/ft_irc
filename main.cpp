@@ -33,7 +33,7 @@ int main (int argc, char *argv[])
 					server.loopFds();
 					if (server.getReorderFds())
 					{
-					server.reorderFds();
+						server.reorderFds();
 					}
 
 				} while (server.getServerRunning() == true);

@@ -196,7 +196,6 @@ void	Message::sendReply(int numeric, const std::string& from, User &user, const 
 			break ;
 		}
 	}
-	std::cout << msg << std::endl;
 	send(user.getSocket(), msg.c_str(), msg.length(), 0);
 }
 
