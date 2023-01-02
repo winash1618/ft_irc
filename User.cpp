@@ -1,7 +1,7 @@
 #include "User.hpp"
 
 
-User::User(): registered(false), timeout(20000), is_pass(false), is_away(false) {
+User::User(): registered(false), timeout(1000000), is_pass(false), is_away(false) {
 }
 
 User::~User() {
@@ -16,6 +16,7 @@ void User::setNickName(const std::string nickname)
 {
 	this->nickname = nickname;
 }
+
 
 int User::getSocket() const
 {
