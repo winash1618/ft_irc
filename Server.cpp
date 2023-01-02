@@ -158,7 +158,7 @@ void	Server::privMsgCommand(const std::string &msg, int i)
 			{
 				if ((*it)->getNickName() == name)
 				{
-					std::string sendMsg = ":" + (*it)->getNickName() + " " + msg + "\n";
+					std::string sendMsg = ":" + users[i - 1]->getNickName() + " " + msg + "\n";
 					send((*it)->getSocket(), sendMsg.c_str(), sendMsg.length(), 0);
 					if ((*it)->getIsAway() == true)
 					{
