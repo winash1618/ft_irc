@@ -71,6 +71,7 @@ public:
 	int			getSocket() const;
 	int			getNumberOfFds() const;
 	bool		getReorderFds() const;
+	void		sendMessageClient(const std::string &from, const std::string &msg);
 	class ServerError : public std::exception
 	{
 	private:

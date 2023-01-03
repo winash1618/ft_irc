@@ -158,12 +158,15 @@ void	Server::privMsgCommand(const std::string &msg, int i)
 			{
 				if ((*it)->getNickName() == name)
 				{
+					std::string sendMsg = ":" + users[i - 1]->getNickName() + " " + msg + "\n";
+					send((*it)->getSocket(), sendMsg.c_str(), sendMsg.length(), 0);
 					if ((*it)->getIsAway() == true)
 					{
 						std::string away;
 						away = (*it)->getNickName() + " " + (*it)->getAwayMsg();
 						message.sendReply(RPL_AWAY, this->hostname, *(users[i - 1]), away);
 					}
+
 				}
 			}
 		}
@@ -182,6 +185,17 @@ void	Server::noticeCommand(const std::string &msg, int i)
 	else if (size < 3 && nickNameExists(message.getNthWord(msg, 2)))
 	{
 		message.sendReply(ERR_NOTEXTTOSEND, this->hostname, *(users[i - 1]));
+	}
+	else
+	{
+		for (std::vector<User*>::iterator it = this->users.begin(); it != this->users.end(); it++)
+		{
+			if ((*it)->getNickName() == name)
+			{
+				std::string sendMsg = ":" + (*it)->getNickName() + " " + msg + "\n";
+				send((*it)->getSocket(), sendMsg.c_str(), sendMsg.length(), 0);
+			}
+		}
 	}
 }
 
@@ -291,8 +305,16 @@ void	Server::userCommand(const std::string &msg, int i)
 
 void	Server::nickCommand(const std::string &msg, int i)
 {
+	std::stringstream stream(msg);
+	size_t size = std::distance(std::istream_iterator<std::string>(stream), std::istream_iterator<std::string>());
 	std::string nickname = this->message.getNthWord(msg, 2);
-	if (users[i - 1]->getNickName().empty())
+	std::cout << "nickname: " << msg << "\n";
+	std::cout << "size: " << size << "\n";
+	if (nickname == ":" || size != 2)
+	{
+		message.sendReply(ERR_NEEDMOREPARAMS, this->hostname, *(users[i - 1]), "USER");
+	}
+	else if (users[i - 1]->getNickName().empty())
 			users[i - 1]->setNickName(nickname);
 	else if (users[i - 1]->getNickName() == nickname)
 	{
@@ -662,4 +684,14 @@ void	Server::socketBind()
 int	Server::getSocket() const
 {
 	return this->sock;
+}
+
+void	Server::sendMessageClient(const std::string &from, const std::string &msg)
+{
+	std::string sendMsg = ":" + from + " " + msg + "\n";
+	for (std::vector<User*>::iterator it = this->users.begin(); it != this->users.end(); it++)
+	{
+		if ((*it)->getNickName() != from)
+			send((*it)->getSocket(), sendMsg.c_str(), sendMsg.length(), 0);
+	}
 }
